@@ -9,6 +9,8 @@ GLFWmonitor* pMonitor;
 
 const char* windowTitle = "Vulkan Project";
 
+using namespace vulkan;
+
 bool InitializeWindow(VkExtent2D size, bool fullScreen = false, bool isResizable = true, bool limitFrameRate = true) {
     if (!glfwInit()) {
         std::cout << std::format("[ InitializeWindow ] ERROR\nFailed to initialize GLFW!\n");
@@ -16,6 +18,7 @@ bool InitializeWindow(VkExtent2D size, bool fullScreen = false, bool isResizable
     }
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     glfwWindowHint(GLFW_RESIZABLE, isResizable);
+    
     pMonitor = glfwGetPrimaryMonitor();
     const GLFWvidmode* pMode = glfwGetVideoMode(pMonitor);
     pWindow = fullScreen ?
@@ -26,6 +29,24 @@ bool InitializeWindow(VkExtent2D size, bool fullScreen = false, bool isResizable
         glfwTerminate();
         return false;
     }
+
+    //Process the physical device part
+#ifdef _WIN32
+    graphicsBase::Base().AddInstanceExtension(VK_KHR_SURFACE_EXTENSION_NAME);
+    graphicsBase::Base().AddInstanceExtension("VK_KHR_win32_surface");
+#else // _WIN32
+    uint32_t extensionCount = 0;
+    const char** extensionNames;
+    extensionNames = glfwGetRequiredInstanceExtensions(&extensionCount);
+    if (!extensionNames) {
+        std::cout << std::format("[ InitializeWindow ]\nVulkan is not available on this machine!\n");
+        glfwTerminate();
+        return false;
+    }
+    for (size_t i = 0; i < extensionCount; i++) {
+        vulkan::graphicsBase::Base().AddInstanceExtension(extensionNames[i]);
+    }
+#endif
     return true;
 }
 
@@ -45,8 +66,18 @@ void TitleFps() {
         info.precision(1);
         info << windowTitle << "    " << std::fixed << dframe / dt << " FPS";
         glfwSetWindowTitle(pWindow, info.str().c_str());
-        info.str("");//别忘了在设置完窗口标题后清空所用的stringstream
+        info.str("");
         time0 = time1;
         dframe = 0;
     }
+}
+
+void MakeWindowFullScreen() {
+    const GLFWvidmode* pMode = glfwGetVideoMode(pMonitor);
+    glfwSetWindowMonitor(pWindow, pMonitor, 0, 0, pMode->width, pMode->height, pMode->refreshRate);
+}
+
+void MakeWindowWindowed(VkOffset2D position, VkExtent2D size) {
+    const GLFWvidmode* pMode = glfwGetVideoMode(pMonitor);
+    glfwSetWindowMonitor(pWindow, nullptr, position.x, position.y, size.width, size.height, pMode->refreshRate);
 }
