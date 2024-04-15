@@ -32,9 +32,12 @@ bool InitializeWindow(VkExtent2D size, bool fullScreen = false, bool isResizable
 
     //Process the physical device part
 #ifdef _WIN32
+    std::cout << "Using win32" << std::endl;
     graphicsBase::Base().AddInstanceExtension(VK_KHR_SURFACE_EXTENSION_NAME);
     graphicsBase::Base().AddInstanceExtension("VK_KHR_win32_surface");
+    graphicsBase::Base().AddDeviceExtension(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
 #else // _WIN32
+    std::cout << "Using win64" << std::endl;
     uint32_t extensionCount = 0;
     const char** extensionNames;
     extensionNames = glfwGetRequiredInstanceExtensions(&extensionCount);
@@ -47,6 +50,29 @@ bool InitializeWindow(VkExtent2D size, bool fullScreen = false, bool isResizable
         vulkan::graphicsBase::Base().AddInstanceExtension(extensionNames[i]);
     }
 #endif
+    //在创建window surface前创建Vulkan实例
+    graphicsBase::Base().UseLatestApiVersion();
+    if (graphicsBase::Base().CreateInstance()) {
+        return false;
+    }    
+
+    //创建window surface
+    VkSurfaceKHR surface = VK_NULL_HANDLE;
+    if (VkResult result = glfwCreateWindowSurface(graphicsBase::Base().Instance(), pWindow, nullptr, &surface)) {
+        std::cout << std::format("[ InitializeWindow ] ERROR\nFailed to create a window surface!\nError code: {}\n", int32_t(result));
+        glfwTerminate();
+        return false;
+    }
+
+    graphicsBase::Base().Surface(surface);
+    //获取物理设备，并使用列表中的第一个物理设备，这里不考虑以下任意函数失败后更换物理设备的情况
+    if (graphicsBase::Base().GetPhysicalDevices() || graphicsBase::Base().DeterminePhysicalDevice(0,true,false) || graphicsBase::Base().CreateDevice()) {
+        return false;
+    }
+
+    if (graphicsBase::Base().CreateSwapchain(limitFrameRate)) {
+        return false;
+    }
     return true;
 }
 

@@ -116,7 +116,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>D:\Study\PersonalWeb\VulkanProject\VulkanProject\Dependency\Vulkan\Lib;D:\Study\PersonalWeb\VulkanProject\VulkanProject\Dependency\GLFW\lib_win64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>D:\Study\PersonalWeb\VulkanProject\VulkanProject\Dependency\Vulkan\Lib;D:\Study\PersonalWeb\VulkanProject\VulkanProject\Dependency\GLFW\lib_win64;D:\Study\PersonalWeb\VulkanProject\VulkanProject\Dependency\Vulkan\Lib32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
