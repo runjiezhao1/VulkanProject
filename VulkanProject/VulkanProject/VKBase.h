@@ -9,9 +9,55 @@
 * Choose physical device(GPU) and logic device and obtain the VK queue which provides an interface to the execution engines of a device
 * Create swapchain(交换链)
 */
+#define VK_RESULT_THROW
+#define DestroyHandleBy(Func) if(handle){ Func(graphicsBase::Base().Device(), handle, nullptr); handle = VK_NULL_HANDLE;}
+#define MoveHandle handle = other.handle; other.handle = VK_NULL_HANDLE;
+#define DefineHandleTypeOperator operator decltype(handle)() const { return handle; }
+#define DefineAddressFunction const decltype(handle)* Address() const { return &handle; }
+
+#ifndef NDEBUG
+#define ENABLE_DEBUG_MESSENGER true
+#else
+#define ENABLE_DEBUG_MESSENGER false
+#endif
 
 namespace vulkan {
     constexpr VkExtent2D defaultWindowSize = {1280,720};
+    inline auto& outStream = std::cout;
+    //情况1：根据函数返回值确定是否抛异常
+#ifdef VK_RESULT_THROW
+    class result_t{
+        VkResult result;
+    public:
+        static void(*callback_throw)(VkResult);
+        result_t(VkResult result) : result(result) {}
+        result_t(result_t&& other) noexcept :result(other.result) { other.result = VK_SUCCESS; }
+        ~result_t() noexcept(false) {
+            if (uint32_t(result) < VK_RESULT_MAX_ENUM)
+                return;
+            if (callback_throw)
+                callback_throw(result);
+            throw result;
+        }
+        operator VkResult() {
+            VkResult result = this->result;
+            this->result = VK_SUCCESS;
+            return result;
+        }
+    };
+    inline void(*result_t::callback_throw)(VkResult);
+
+    //情况2：若抛弃函数返回值，让编译器发出警告
+#elif defined VK_RESULT_NODISCARD
+    struct [[nodiscard]] result_t {
+        VkResult result;
+        result_t(VkResult result) :result(result) {}
+        operator VkResult() const { return result; }
+    };
+#else
+    using result_t = VkResult;
+#endif
+
     class graphicsBase {
         static graphicsBase singleton;
 
@@ -51,6 +97,8 @@ namespace vulkan {
             vkDestroyInstance(instance, nullptr);
         }
     private:
+        //当前取得的交换链图像索引
+        uint32_t currentImageIndex = 0;
         std::vector<void(*)()> callbacks_createDevice;
         std::vector<void(*)()> callbacks_destroyDevice;
         std::vector<void(*)()> callbacks_createSwapchain;
@@ -98,7 +146,7 @@ namespace vulkan {
             container.push_back(name);
         }
 
-        VkResult CreateDebugMessenger() {
+        result_t CreateDebugMessenger() {
             static PFN_vkDebugUtilsMessengerCallbackEXT DebugUtilsMessengerCallback = [] ( VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, VkDebugUtilsMessageTypeFlagsEXT messageTypes,
                 const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* pUserData)->VkBool32 {
                     std::cout << std::format("{}\n\n", pCallbackData->pMessage);
@@ -123,7 +171,7 @@ namespace vulkan {
             return VK_RESULT_MAX_ENUM;
         }
         //该函数被DeterminePhysicalDevice(...)调用，用于检查物理设备是否满足所需的队列族类型，并将对应的队列族索引返回到queueFamilyIndices，执行成功时直接将索引写入相应成员变量
-        VkResult GetQueueFamilyIndices(VkPhysicalDevice physicalDevice, bool enableGraphicsQueue, bool enableComputeQueue, uint32_t(&queueFamilyIndices)[3]) {
+        result_t GetQueueFamilyIndices(VkPhysicalDevice physicalDevice, bool enableGraphicsQueue, bool enableComputeQueue, uint32_t(&queueFamilyIndices)[3]) {
             uint32_t queueFamilyCount = 0;
             vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount, nullptr);
             if (!queueFamilyCount) {
@@ -188,7 +236,7 @@ namespace vulkan {
         //保存交换链的创建信息以便重建交换链
         VkSwapchainCreateInfoKHR swapchainCreateInfo = {};
 
-        VkResult CreateSwapchain_Internal() {
+        result_t CreateSwapchain_Internal() {
             if (VkResult result = vkCreateSwapchainKHR(device, &swapchainCreateInfo, nullptr, &swapchain)) {
                 std::cout << std::format("[ graphicsBase ] ERROR\nFailed to create a swapchain!\nError code: {}\n", int32_t(result));
                 return result;
@@ -228,6 +276,59 @@ namespace vulkan {
         uint32_t apiVersion = VK_API_VERSION_1_0;
 
     public:
+        uint32_t CurrentImageIndex() const { return currentImageIndex; };
+
+        //该函数用于获取交换链图像索引到currentImageIndex，以及在需要重建交换链时调用RecreateSwapchain()、重建交换链后销毁旧交换链
+        result_t SwapImage(VkSemaphore semaphore_imageIsAvailable) {
+            //销毁旧交换链（若存在）
+            if (swapchainCreateInfo.oldSwapchain && swapchainCreateInfo.oldSwapchain != swapchain) {
+                vkDestroySwapchainKHR(device, swapchainCreateInfo.oldSwapchain, nullptr);
+                swapchainCreateInfo.oldSwapchain = VK_NULL_HANDLE;
+            }
+            //获取交换链图像索引
+            while (VkResult result = vkAcquireNextImageKHR(device, swapchain, UINT64_MAX, semaphore_imageIsAvailable, VK_NULL_HANDLE, &currentImageIndex)) {
+                switch (result)
+                {
+                case VK_SUBOPTIMAL_KHR:
+                case VK_ERROR_OUT_OF_DATE_KHR:
+                    if (VkResult result = RecreateSwapChain()) {
+                        return result;
+                    }
+                    break;
+                default:
+                    outStream << std::format("[ graphicsBase ] ERROR\nFailed to acquire the next image!\nError code: {}\n", int32_t(result));
+                    return result;
+                }
+            }
+            return VK_SUCCESS;
+        }
+
+        result_t SubmitCommandBuffer_Graphics(VkSubmitInfo& submitInfo, VkFence fence = VK_NULL_HANDLE) const {
+            submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+            VkResult result = vkQueueSubmit(queue_graphics, 1, &submitInfo, fence);
+            if (result)
+                outStream << std::format("[ graphicsBase ] ERROR\nFailed to submit the command buffer!\nError code: {}\n", int32_t(result));
+            return result;
+        }
+
+        result_t SubmitCommandBuffer_Graphics(VkCommandBuffer commandBuffer, VkSemaphore semaphore_imageIsAvailable = VK_NULL_HANDLE, VkSemaphore semaphore_renderingIsOver = VK_NULL_HANDLE, VkFence fence = VK_NULL_HANDLE,
+            VkPipelineStageFlags waitDstStage_imageIsAvailable = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT) const {
+            VkSubmitInfo submitInfo = {
+                .commandBufferCount = 1,
+                .pCommandBuffers = &commandBuffer
+            };
+            if (semaphore_imageIsAvailable) {
+                submitInfo.waitSemaphoreCount = 1;
+                submitInfo.pWaitSemaphores = &semaphore_imageIsAvailable;
+                submitInfo.pWaitDstStageMask = &waitDstStage_imageIsAvailable;
+            }
+            if (semaphore_renderingIsOver) {
+                submitInfo.signalSemaphoreCount = 1;
+                submitInfo.pSignalSemaphores = &semaphore_renderingIsOver;
+            }
+            return SubmitCommandBuffer_Graphics(submitInfo, fence);
+        }
+
         void Terminate() {
             this->~graphicsBase();
             instance = VK_NULL_HANDLE;
@@ -254,14 +355,14 @@ namespace vulkan {
             callbacks_destroyDevice.push_back(function);
         }
         //该函数用于等待逻辑设备空闲
-        VkResult WaitIdle() const {
+        result_t WaitIdle() const {
             VkResult result = vkDeviceWaitIdle(device);
             if (result)
                 std::cout << std::format("[ graphicsBase ] ERROR\nFailed to wait for the device to be idle!\nError code: {}\n", int32_t(result));
             return result;
         }
         //该函数用于重建逻辑设备
-        VkResult RecreateDevice(VkDeviceCreateFlags flags = 0) {
+        result_t RecreateDevice(VkDeviceCreateFlags flags = 0) {
             if (VkResult result = WaitIdle())
                 return result;
             if (swapchain) {
@@ -297,7 +398,7 @@ namespace vulkan {
         uint32_t ApiVersion() const {
             return apiVersion;
         }
-        VkResult UseLatestApiVersion() {
+        result_t UseLatestApiVersion() {
             if (vkGetInstanceProcAddr(VK_NULL_HANDLE, "vkEnumerateInstanceVersion")) {
                 return vkEnumerateInstanceVersion(&apiVersion);
             }
@@ -338,7 +439,7 @@ namespace vulkan {
             return swapchainCreateInfo;
         }
 
-        VkResult GetSurfaceFormats() {
+        result_t GetSurfaceFormats() {
             uint32_t surfaceFormatCount;
             if (VkResult result = vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, &surfaceFormatCount, nullptr)) {
                 std::cout << std::format("[ graphicsBase ] ERROR\nFailed to get the count of surface formats!\nError code: {}\n", int32_t(result));
@@ -355,7 +456,7 @@ namespace vulkan {
             return result;
         }
 
-        VkResult SetSurfaceFormat(VkSurfaceFormatKHR surfaceFormat) {
+        result_t SetSurfaceFormat(VkSurfaceFormatKHR surfaceFormat) {
             bool formatIsAvailable = false;
             //如果格式未指定，只匹配色彩空间，图像格式有啥就用啥
             if (!surfaceFormat.format) {
@@ -391,7 +492,7 @@ namespace vulkan {
         }
 
         //该函数用于创建交换链
-        VkResult CreateSwapchain(bool limitFrameRate = true, VkSwapchainCreateFlagsKHR flags = 0) {
+        result_t CreateSwapchain(bool limitFrameRate = true, VkSwapchainCreateFlagsKHR flags = 0) {
             //VkSurfaceCapabilitiesKHR相关的参数
             VkSurfaceCapabilitiesKHR surfaceCapabilities = {};
             if (VkResult result = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice, surface, &surfaceCapabilities)) {
@@ -489,7 +590,7 @@ namespace vulkan {
         }
 
         //在调整窗口大小的时候 可以用recreateswapchain来重建交换链
-        VkResult RecreateSwapChain() {
+        result_t RecreateSwapChain() {
             VkSurfaceCapabilitiesKHR surfaceCapbilities = {};
             if (VkResult result = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice, surface, &surfaceCapbilities)) {
                 std::cout << std::format("[ graphicsBase ] ERROR\nFailed to get physical device surface capabilities!\nError code: {}\n", int32_t(result));
@@ -587,7 +688,7 @@ namespace vulkan {
             AddLayerOrExtension(deviceExtensions, extensionName);
         }
         //该函数用于获取物理设备
-        VkResult GetPhysicalDevices() {
+        result_t GetPhysicalDevices() {
             uint32_t deviceCount;
             if (VkResult result = vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr)) {
                 std::cout << std::format("[ graphicsBase ] ERROR\nFailed to get the count of physical devices!\nError code: {}\n", int32_t(result));
@@ -604,7 +705,7 @@ namespace vulkan {
             return result;
         }
         //该函数用于指定所用物理设备并调用GetQueueFamilyIndices(...)取得队列族索引
-        VkResult DeterminePhysicalDevice(uint32_t deviceIndex = 0, bool enableGraphicsQueue = true, bool enableComputeQueue = true) {
+        result_t DeterminePhysicalDevice(uint32_t deviceIndex = 0, bool enableGraphicsQueue = true, bool enableComputeQueue = true) {
             //定义一个特殊值用于标记一个队列族索引已被找过但未找到
             static constexpr uint32_t notFound = INT32_MAX;
             struct queueFamilyIndexCombination {
@@ -653,7 +754,7 @@ namespace vulkan {
             return VK_SUCCESS;
         }
         //该函数用于创建逻辑设备，并取得队列
-        VkResult CreateDevice(VkDeviceCreateFlags flags = 0) {
+        result_t CreateDevice(VkDeviceCreateFlags flags = 0) {
             float queuePriority = 1.f;
             VkDeviceQueueCreateInfo queueCreateInfos[3] = {
                 {
@@ -721,7 +822,7 @@ namespace vulkan {
             return VK_SUCCESS;
         }
         //以下函数用于创建逻辑设备失败后
-        VkResult CheckDeviceExtensions(std::span<const char*> extensionsToCheck, const char* layerName = nullptr) const {
+        result_t CheckDeviceExtensions(std::span<const char*> extensionsToCheck, const char* layerName = nullptr) const {
             /*waiting for being filled*/
         }
 
@@ -756,11 +857,11 @@ namespace vulkan {
                 this->surface = surface;
         }
 
-        VkResult CreateInstance(VkInstanceCreateFlags flags = 0) {
-#ifndef NDEBUG
-            AddInstanceLayer("VK_LAYER_KHRONOS_validation");
-            AddInstanceExtension(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
-#endif // !NDEBUG
+        result_t CreateInstance(VkInstanceCreateFlags flags = 0) {
+            if constexpr (ENABLE_DEBUG_MESSENGER)
+                AddInstanceLayer("VK_LAYER_KHRONOS_validation");
+                AddInstanceExtension(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+
             VkApplicationInfo applicationInfo = {
                 .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
                 .apiVersion = apiVersion
@@ -780,13 +881,14 @@ namespace vulkan {
                 return result;
             }
             std::cout << std::format("Vulkan API Version: {}.{}.{}\n", VK_VERSION_MAJOR(apiVersion), VK_VERSION_MINOR(apiVersion), VK_VERSION_PATCH(apiVersion));
-#ifndef NDEBUG
-            CreateDebugMessenger();
-#endif // !NDEBUG
+
+            if constexpr (ENABLE_DEBUG_MESSENGER)
+                CreateDebugMessenger();
+
             return VK_SUCCESS;
         }
 
-        VkResult CheckInstanceLayers(std::span<const char*> layersToCheck) {
+        result_t CheckInstanceLayers(std::span<const char*> layersToCheck) {
             uint32_t layerCount;
             std::vector<VkLayerProperties> availableLayers;
             if (VkResult result = vkEnumerateInstanceLayerProperties(&layerCount,nullptr)) {
@@ -822,7 +924,7 @@ namespace vulkan {
         void InstanceLayers(const std::vector<const char*>& layerNames) {
             instanceLayers = layerNames;
         }
-        VkResult CheckInstanceExtensions(std::span<const char*> extensionsToCheck, const char* layerName = nullptr) const {
+        result_t CheckInstanceExtensions(std::span<const char*> extensionsToCheck, const char* layerName = nullptr) const {
             uint32_t extensionCount;
             std::vector<VkExtensionProperties> availableExtensions;
             if (VkResult result = vkEnumerateInstanceExtensionProperties(layerName, &extensionCount, nullptr)) {
@@ -865,5 +967,200 @@ namespace vulkan {
             return singleton;
         }
     };
+
+    class fence {
+        VkFence handle = VK_NULL_HANDLE;
+    public:
+        fence(VkFenceCreateInfo& createInfo) {
+            //Create(createInfo);
+            Create(createInfo);
+        }
+        fence(VkFenceCreateFlags flags = 0) {
+            Create(flags);
+        }
+        fence(fence&& other) noexcept {
+            MoveHandle;
+        }
+        ~fence() {
+            DestroyHandleBy(vkDestroyFence);
+        }
+        //getter function
+        DefineHandleTypeOperator;
+        DefineAddressFunction;
+        //const function
+        result_t Wait() const{
+            VkResult result = vkWaitForFences(graphicsBase::Base().Device(), 1, &handle, false, UINT64_MAX);
+            if (result)
+                outStream << std::format("[ fence ] ERROR\nFailed to wait for the fence!\nError code: {}\n", int32_t(result));
+            return result;
+        }
+
+        result_t Reset() const{
+            VkResult result = vkResetFences(graphicsBase::Base().Device(), 1, &handle);
+            if (result)
+                outStream << std::format("[ fence ] ERROR\nFailed to reset the fence!\nError code: {}\n", int32_t(result));
+            return result;
+        }
+
+        result_t Status() const {
+            VkResult result = vkGetFenceStatus(graphicsBase::Base().Device(), handle);
+            if (result < 0) {
+                outStream << std::format("[ fence ] ERROR\nFailed to get the status of the fence!\nError code: {}\n", int32_t(result));
+            }
+            return result;
+        }
+        //因为“等待后立刻重置”的情形经常出现，定义此函数
+        result_t WaitAndReset() const {
+            VkResult result = Wait();
+            result || (result = Reset());
+            return result;
+        }
+        //non const function
+        result_t Create(VkFenceCreateInfo& createInfo) {
+            createInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+            VkResult result = vkCreateFence(graphicsBase::Base().Device(), &createInfo, nullptr, &handle);
+            if (result) {
+                outStream << std::format("[ fence ] ERROR\nFailed to create a fence!\nError code: {}\n", int32_t(result));
+            }
+            return result;
+        }
+        result_t Create(VkFenceCreateFlags flags = 0) {
+            VkFenceCreateInfo createInfo = {
+                .flags = flags
+            };
+            return Create(createInfo);
+        }
+    };
+
+    class semaphore {
+        VkSemaphore handle = VK_NULL_HANDLE;
+    public:
+        semaphore(VkSemaphoreCreateInfo& createInfo) {
+            Create(createInfo);
+        }
+        semaphore() {
+            Create();
+        }
+        semaphore(semaphore&& other) noexcept { MoveHandle; }
+        ~semaphore() { DestroyHandleBy(vkDestroySemaphore); }
+        //Getter
+        DefineHandleTypeOperator;
+        DefineAddressFunction;
+        //non const function
+        result_t Create(VkSemaphoreCreateInfo& createInfo) {
+            createInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+            VkResult result = vkCreateSemaphore(graphicsBase::Base().Device(), &createInfo, nullptr, &handle);
+            if (result) {
+                outStream << std::format("[ semaphore ] ERROR\nFailed to create a semaphore!\nError code: {}\n", int32_t(result));
+            }
+            return result;
+        }
+        result_t Create() {
+            VkSemaphoreCreateInfo createInfo = {};
+            return Create(createInfo);
+        }
+    };
+
+    class commandBuffer {
+        friend class commandPool;
+        VkCommandBuffer handle = VK_NULL_HANDLE;
+    public:
+        commandBuffer() = default;
+        commandBuffer(commandBuffer&& other) noexcept { MoveHandle; }
+        //Getter
+        DefineHandleTypeOperator;
+        DefineAddressFunction;
+        //Const function
+        result_t Begin(VkCommandBufferUsageFlags usageFlags, VkCommandBufferInheritanceInfo& inheritanceInfo) const {
+            inheritanceInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO;
+            VkCommandBufferBeginInfo beginInfo = {
+                .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+                .flags = usageFlags,
+                .pInheritanceInfo = &inheritanceInfo
+            };
+            VkResult result = vkBeginCommandBuffer(handle, &beginInfo);
+            if (result)
+                outStream << std::format("[ commandBuffer ] ERROR\nFailed to begin a command buffer!\nError code: {}\n", int32_t(result));
+            return result;
+        }
+        result_t Begin(VkCommandBufferUsageFlags usageFlags = 0) const {
+            VkCommandBufferBeginInfo beginInfo = {
+                .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+                .flags = usageFlags,
+            };
+            VkResult result = vkBeginCommandBuffer(handle, &beginInfo);
+            if (result)
+                outStream << std::format("[ commandBuffer ] ERROR\nFailed to begin a command buffer!\nError code: {}\n", int32_t(result));
+            return result;
+        }
+        result_t End() const {
+            VkResult result = vkEndCommandBuffer(handle);
+            if (result)
+                outStream << std::format("[ commandBuffer ] ERROR\nFailed to end a command buffer!\nError code: {}\n", int32_t(result));
+            return result;
+        }
+    };
+
+    class commandPool {
+        VkCommandPool handle = VK_NULL_HANDLE;
+    public:
+        commandPool() = default;
+        commandPool(VkCommandPoolCreateInfo& createInfo) {
+            Create(createInfo);
+        }
+        commandPool(uint32_t queueFamilyIndex, VkCommandPoolCreateFlags flags = 0) {
+            Create(queueFamilyIndex, flags);
+        }
+        commandPool(commandPool&& other) noexcept { MoveHandle; }
+        ~commandPool() { DestroyHandleBy(vkDestroyCommandPool); }
+        //Getter
+        DefineHandleTypeOperator;
+        DefineAddressFunction;
+        //const function
+        result_t AllocateBuffers(arrayRef<VkCommandBuffer> buffers, VkCommandBufferLevel level = VK_COMMAND_BUFFER_LEVEL_PRIMARY) const {
+            VkCommandBufferAllocateInfo allocateInfo = {
+                .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
+                .commandPool = handle,
+                .level = level,
+                .commandBufferCount = uint32_t(buffers.Count())
+            };
+            VkResult result = vkAllocateCommandBuffers(graphicsBase::Base().Device(), &allocateInfo, buffers.Pointer());
+            if (result) {
+                outStream << std::format("[ commandPool ] ERROR\nFailed to allocate command buffers!\nError code: {}\n", int32_t(result));
+            }
+            return result;
+        }
+        result_t AllocateBuffers(arrayRef<commandBuffer> buffers, VkCommandBufferLevel level = VK_COMMAND_BUFFER_LEVEL_PRIMARY) const {
+            return AllocateBuffers({ &buffers[0].handle, buffers.Count() }, level);
+        }
+        void FreeBuffers(arrayRef<VkCommandBuffer> buffers) const {
+            vkFreeCommandBuffers(graphicsBase::Base().Device(), handle, buffers.Count(), buffers.Pointer());
+            memset(buffers.Pointer(), 0, buffers.Count() * sizeof(VkCommandBuffer));
+        }
+        void FreeBuffers(arrayRef<commandBuffer> buffers) const {
+            FreeBuffers({ &buffers[0].handle, buffers.Count() });
+        }
+        void FreeBuffer(uint32_t commandBufferCount, const VkCommandBuffer* pCommandBuffers) const {
+            //vkFreeCommandBuffers(graphicsBase::Base().Device(), handle, commandBufferCount, pCommandBuffers);
+            //memset(pCommandBuffers, 0, commandBufferCount * sizeof(VkCommandPool));
+        }
+        //non const function
+        result_t Create(VkCommandPoolCreateInfo& createInfo) {
+            createInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+            VkResult result = vkCreateCommandPool(graphicsBase::Base().Device(), &createInfo, nullptr, &handle);
+            if (result) {
+                outStream << std::format("[ commandPool ] ERROR\nFailed to create a command pool!\nError code: {}\n", int32_t(result));
+            }
+            return result;
+        }
+        result_t Create(uint32_t queueFamilyIndex, VkCommandPoolCreateFlags flags = 0) {
+            VkCommandPoolCreateInfo createInfo = {
+                .flags = flags,
+                .queueFamilyIndex = queueFamilyIndex
+            };
+            return Create(createInfo);
+        }
+    };
+
     inline graphicsBase graphicsBase::singleton;
 }
