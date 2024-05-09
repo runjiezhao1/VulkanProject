@@ -4,6 +4,8 @@
 #include <stdexcept>
 #include <cstdlib>
 #include <vector>
+#include <map>
+#include <optional>
 
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
@@ -57,6 +59,33 @@
 //    }
 //}
 
+VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger) {
+    auto func = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
+    if (func != nullptr) {
+        return func(instance, pCreateInfo, pAllocator, pDebugMessenger);
+    }
+    else {
+        return VK_ERROR_EXTENSION_NOT_PRESENT;
+    }
+}
+
+void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger, const VkAllocationCallbacks* pAllocator) {
+    auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
+    if (func != nullptr) {
+        func(instance, debugMessenger, pAllocator);
+    }
+}
+
+struct QueueFamilyIndices {
+    std::optional<uint32_t> graphicsFamily;
+
+    //uint32_t graphicsFamily;
+    bool isComplete() {
+        return graphicsFamily.has_value();
+    }
+};
+
+
 class HelloTriangleApplication
 {
 public:
@@ -65,6 +94,7 @@ public:
         initVulkan();
         mainLoop();
         cleanup();
+        createLogicalDevice();
     }
 
 private:
@@ -82,14 +112,8 @@ private:
     VkInstance instance;
     VkDebugUtilsMessengerEXT debugMessenger;
 
-    VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger) {
-        auto func = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
-        if (func != nullptr) {
-            return func(instance, pCreateInfo, pAllocator, pDebugMessenger);
-        }
-        else {
-            return VK_ERROR_EXTENSION_NOT_PRESENT;
-        }
+    void createLogicalDevice() {
+        //QueueFamilyIndices
     }
 
     bool checkValidationLayerSupport() {
@@ -127,6 +151,94 @@ private:
     void initVulkan() {
         createInstance();
         setupDebugMessenger();
+        pickPhysicalDevice();
+    }
+
+    void pickPhysicalDevice() {
+        VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
+        uint32_t deviceCount = 0;
+        vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
+
+        if (deviceCount == 0) {
+            throw std::runtime_error("failed to find GPUs with vulkan support");
+        }
+
+        std::vector<VkPhysicalDevice> devices(deviceCount);
+        vkEnumeratePhysicalDevices(instance, &deviceCount, devices.data());
+
+        for (const auto& device: devices) {
+            if (isDeviceSuitable(device)) {
+                physicalDevice = device;
+                break;
+            }
+        }
+
+        if (physicalDevice == VK_NULL_HANDLE) {
+            throw std::runtime_error("failed to find a suitable GPU");
+        }
+    }
+
+    //two ways to select the device, one with physical device one with suitable device
+    int rateDeviceSuitability(VkPhysicalDevice device) {
+        VkPhysicalDeviceProperties deviceProperties;
+        VkPhysicalDeviceFeatures deviceFeatures;
+        vkGetPhysicalDeviceProperties(device, &deviceProperties);
+        vkGetPhysicalDeviceFeatures(device, &deviceFeatures);
+
+        int score = 0;
+
+        if (deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU) {
+            score += 1000;
+        }
+
+        // Maximum possible size of textures affects graphics quality
+        score += deviceProperties.limits.maxImageDimension2D;
+
+        // Application can't function without geometry shaders
+        if (!deviceFeatures.geometryShader) {
+            return 0;
+        }
+
+        return score;
+    }
+
+    bool isDeviceSuitable(VkPhysicalDevice device) {
+        //VkPhysicalDeviceProperties deviceProperties;
+        //VkPhysicalDeviceFeatures deviceFeatures;
+        //vkGetPhysicalDeviceProperties(device, &deviceProperties);
+        //vkGetPhysicalDeviceFeatures(device, &deviceFeatures);
+
+        //return deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU && deviceFeatures.geometryShader;
+        QueueFamilyIndices indices = findQueueFamilies(device);
+
+        return indices.isComplete();
+    }
+
+    QueueFamilyIndices  findQueueFamilies(VkPhysicalDevice device) {
+        QueueFamilyIndices indices;
+        //Logic to find graphics queue family
+
+        uint32_t queueFamilyCount = 0;
+        vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
+
+        std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
+        vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.data());
+
+        int i = 0;
+        for (const auto& queueFamily : queueFamilies) {
+
+            if (indices.isComplete()) {
+                break;
+            }
+
+            if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+                indices.graphicsFamily = i;
+            }
+
+            i++;
+        }
+
+        return indices;
     }
 
     void setupDebugMessenger() {
@@ -149,6 +261,10 @@ private:
     }
 
     void cleanup() {
+        if (enableValidationLayers) {
+            DestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
+        }
+
         vkDestroyInstance(instance, nullptr);
 
         glfwDestroyWindow(window);
@@ -184,12 +300,18 @@ private:
         createInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
         createInfo.ppEnabledExtensionNames = extensions.data();
 
+        VkDebugUtilsMessengerCreateInfoEXT  debugCreateInfo{};
+
         if (enableValidationLayers) {
             createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
             createInfo.ppEnabledLayerNames = validationLayers.data();
+
+            populateDebugMessengerCreateInfo(debugCreateInfo);
+            createInfo.pNext = (VkDebugUtilsMessengerCreateInfoEXT*)&debugCreateInfo;
         }
         else {
             createInfo.enabledLayerCount = 0;
+            createInfo.pNext = nullptr;
         }
 
         if (vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS) {
@@ -210,7 +332,6 @@ private:
         uint32_t glfwExtensionCount = 0;
         const char** glfwExtensions;
         glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
-
         std::vector<const char*> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
 
         if (enableValidationLayers) {
@@ -233,7 +354,7 @@ private:
         VkDebugUtilsMessageTypeFlagsEXT messageType,
         const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
         void* pUserData){
-        std::cerr << "validation layer: " << pCallbackData->pMessage << std::endl;
+        std::cerr << "validation layer: (Severity: " << messageSeverity << ") " << pCallbackData->pMessage << std::endl;
         return VK_FALSE;
     }
 };
