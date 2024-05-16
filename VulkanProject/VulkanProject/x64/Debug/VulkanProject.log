@@ -1,2 +1,2 @@
 ﻿  main.cpp
-C:\Study\Projects\VulkanProject\VulkanProject\VulkanProject\main.cpp(421,99): error C2297: '|': not valid as right operand has type 'void'
+  VulkanProject.vcxproj -> C:\Study\Projects\VulkanProject\VulkanProject\x64\Debug\VulkanProject.exe
