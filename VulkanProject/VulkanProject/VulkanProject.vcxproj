@@ -110,7 +110,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Study\Projects\VulkanProject\VulkanProject\Dependency;C:\Study\Projects\VulkanProject\VulkanProject\Dependency\GLFW\lib_win64;C:\Study\Projects\VulkanProject\VulkanProject\Dependency\Vulkan\Include;C:\Study\Projects\VulkanProject\VulkanProject\Dependency\glm</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Study\Projects\VulkanProject\VulkanProject\Dependency;C:\Study\Projects\VulkanProject\VulkanProject\Dependency\GLFW\lib_win64;C:\Study\Projects\VulkanProject\VulkanProject\Dependency\Vulkan\Include;C:\Study\Projects\VulkanProject\VulkanProject\Dependency\glm;C:\Study\Projects\VulkanProject\VulkanProject\Dependency\ObjectLoader</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
@@ -128,7 +128,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Study\Projects\VulkanProject\VulkanProject\Dependency;C:\Study\Projects\VulkanProject\VulkanProject\Dependency\GLFW\lib_win64;C:\Study\Projects\VulkanProject\VulkanProject\Dependency\Vulkan\Include;C:\Study\Projects\VulkanProject\VulkanProject\Dependency\glm</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Study\Projects\VulkanProject\VulkanProject\Dependency;C:\Study\Projects\VulkanProject\VulkanProject\Dependency\GLFW\lib_win64;C:\Study\Projects\VulkanProject\VulkanProject\Dependency\Vulkan\Include;C:\Study\Projects\VulkanProject\VulkanProject\Dependency\glm;C:\Study\Projects\VulkanProject\VulkanProject\Dependency\ObjectLoader</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
