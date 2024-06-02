@@ -455,7 +455,7 @@ private:
         samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
         samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
         //samplerInfo.mipLodBias = 0.f;
-        //samplerInfo.minLod = 0.f;
+        samplerInfo.minLod = 0.f;
         samplerInfo.maxLod = static_cast<float>(mipLevels);
 
         if (vkCreateSampler(device, &samplerInfo, nullptr, &textureSampler) != VK_SUCCESS) {
