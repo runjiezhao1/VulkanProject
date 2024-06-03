@@ -10,11 +10,17 @@ layout(binding = 0) uniform UniformBufferObject{
     mat4 proj;
 } ubo;
 
-layout (location = 0) out vec3 texCoords;
+layout (location = 0) out vec2 texCoords;
+layout (location = 1) out vec3 transColor;
 
 void main()
 {
-    texCoords = aPos;
+    texCoords = inTexCoord;
+    transColor = inColor;
+    
+	//mat4 viewMat = mat4(mat3(ubo.model));
+	//gl_Position = ubo.proj * viewMat * vec4(aPos, 1.0);
+
     vec4 pos = ubo.proj * ubo.view * vec4(aPos, 1.0);
     gl_Position = pos.xyww;
 }

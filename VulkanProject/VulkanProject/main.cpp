@@ -38,7 +38,7 @@ const uint32_t HEIGHT = 600;
 
 const std::string MODEL_PATH = "model/temp.obj";
 const std::string TEXTURE_PATH = "texture/viking_room.png";
-const std::string SKYBOX_PATH = "texture/skybox.png";
+const std::string SKYBOX_PATH = "texture/skybox1.jpg";
 
 const std::vector<const char*> validationLayers = { "VK_LAYER_KHRONOS_validation" };
 
@@ -147,6 +147,66 @@ namespace std {
 //    4, 5, 6, 6, 7, 4
 //};
 
+const std::vector<Vertex> skyboxVertices = {
+    //back face
+    {{-1.0f,  1.0f, -1.0f },{1.0f, 0.0f, 0.0f}, {0.25f,0.6667f}},
+    {{-1.0f, -1.0f, -1.0f },{1.0f, 0.0f, 0.0f}, {0.25f,0.3333f}},
+    {{1.0f, -1.0f, -1.0f },{1.0f, 0.0f, 0.0f}, {0.5f,0.3333f}},
+    {{1.0f, -1.0f, -1.0f },{1.0f, 0.0f, 0.0f}, {0.5f,0.3333f}},
+    {{1.0f,  1.0f, -1.0f },{1.0f, 0.0f, 0.0f}, {0.5f,0.6667f}},
+    {{-1.0f,  1.0f, -1.0f },{1.0f, 0.0f, 0.0f}, {0.25f,0.6667f}},
+
+    //left
+    {{-1.0f, -1.0f,  1.0f },{1.0f, 0.0f, 0.0f}, {0.0f,0.3333f}},
+    {{-1.0f, -1.0f, -1.0f },{1.0f, 0.0f, 0.0f}, {0.25f,0.3333f}},
+    {{-1.0f,  1.0f, -1.0f },{1.0f, 0.0f, 0.0f}, {0.25f,0.6667f}},
+    {{-1.0f,  1.0f, -1.0f },{1.0f, 0.0f, 0.0f}, {0.25f,0.6667f}},
+    {{-1.0f,  1.0f,  1.0f },{1.0f, 0.0f, 0.0f}, {0.0f,0.6667f}},
+    {{-1.0f, -1.0f,  1.0f },{1.0f, 0.0f, 0.0f}, {0.0f,0.3333f}},
+
+
+    //right
+    {{1.0f, -1.0f, -1.0f },{1.0f, 0.0f, 0.0f}, {0.5f,0.3333f}},
+    {{1.0f, -1.0f,  1.0f },{1.0f, 0.0f, 0.0f}, {0.75f,0.3333f}},
+    {{1.0f,  1.0f,  1.0f },{1.0f, 0.0f, 0.0f}, {0.75f,0.6667f}},
+    {{1.0f,  1.0f,  1.0f },{1.0f, 0.0f, 0.0f}, {0.75f,0.6667f}},
+    {{1.0f,  1.0f, -1.0f },{1.0f, 0.0f, 0.0f}, {0.5f,0.6667f}},
+    {{1.0f, -1.0f, -1.0f },{1.0f, 0.0f, 0.0f}, {0.5f,0.3333f}},
+
+    //back
+    {{-1.0f, -1.0f,  1.0f },{1.0f, 0.0f, 0.0f}, {1.0f,0.3333f}},
+    {{-1.0f,  1.0f,  1.0f },{1.0f, 0.0f, 0.0f}, {1.0f,0.6667f}},
+    {{1.0f,  1.0f,  1.0f },{1.0f, 0.0f, 0.0f}, {0.75f,0.6667f}},
+    {{1.0f,  1.0f,  1.0f },{1.0f, 0.0f, 0.0f}, {0.75f,0.6667f}},
+    {{1.0f, -1.0f,  1.0f },{1.0f, 0.0f, 0.0f}, {0.75f,0.3333f}},
+    {{-1.0f, -1.0f,  1.0f },{1.0f, 0.0f, 0.0f}, {1.0f,0.3333f}},
+
+    //top
+    {{-1.0f,  1.0f, -1.0f },{1.0f, 0.0f, 0.0f}, {0.25f,0.6667f}},
+    {{1.0f,  1.0f, -1.0f },{1.0f, 0.0f, 0.0f}, {0.5f,0.6667f}},
+    {{1.0f,  1.0f,  1.0f },{1.0f, 0.0f, 0.0f}, {0.5f,1.f}},
+    {{1.0f,  1.0f,  1.0f },{1.0f, 0.0f, 0.0f}, {0.5f,1.f}},
+    {{-1.0f,  1.0f,  1.0f },{1.0f, 0.0f, 0.0f}, {0.25f,1.f}},
+    {{-1.0f,  1.0f, -1.0f },{1.0f, 0.0f, 0.0f}, {0.25f,0.6667f}},
+
+    //bottom
+    {{-1.0f, -1.0f, -1.0f },{1.0f, 0.0f, 0.0f}, {0.25f,0.3333f}},
+    {{-1.0f, -1.0f,  1.0f },{1.0f, 0.0f, 0.0f}, {0.25f,0.f}},
+    {{1.0f, -1.0f, -1.0f },{1.0f, 0.0f, 0.0f}, {0.5f,0.3333f}},
+    {{1.0f, -1.0f, -1.0f },{1.0f, 0.0f, 0.0f}, {0.5f,0.3333f}},
+    {{-1.0f, -1.0f,  1.0f }, {1.0f, 0.0f, 0.0f}, {0.25f,0.f}},
+    {{1.0f, -1.0f,  1.0f }, {1.0f, 0.0f, 0.0f}, {0.5f,0.f}},
+};
+
+const std::vector<uint32_t> skyboxIndices = {
+    0, 1, 2, 3, 4, 5,
+    6, 7, 8, 9, 10, 11,
+    12, 13, 14, 15, 16, 17,
+    18, 19, 20, 21, 22, 23,
+    24, 25, 26, 27, 28, 29,
+    30, 31, 32, 33, 34, 35
+};
+
 struct QueueFamilyIndices {
     std::optional<uint32_t> graphicsFamily;
     std::optional<uint32_t> presentFamily;
@@ -215,11 +275,17 @@ private:
     VkBuffer vertexBuffer;
     VkDeviceMemory vertexBufferMemory;
 
+    VkBuffer skyboxVertexBuffer;
+    VkDeviceMemory skyboxVertexBufferMemory;
+
     VkBuffer indexBuffer;
     VkDeviceMemory indexBufferMemory;
 
 
     uint32_t mipLevels;
+    VkBuffer skyboxIndexBuffer;
+    VkDeviceMemory skyboxIndexBufferMemory;
+
 
     VkImage textureImage;
     VkDeviceMemory textureImageMemory;
@@ -237,6 +303,8 @@ private:
 
     VkDescriptorPool descriptorPool;
     std::vector<VkDescriptorSet> descriptorSets;
+    VkDescriptorPool skyboxDescriptorPool;
+    std::vector<VkDescriptorSet> skyboxDescriptorSets;
 
     std::vector<VkCommandBuffer> commandBuffers;
 
@@ -282,8 +350,10 @@ private:
         createTextureSampler(textureSampler);
         createTextureSampler(skyboxSampler);
         loadModel();
-        createVertexBuffer();
-        createIndexBuffer();
+        createVertexBuffer(vertices, vertexBuffer, vertexBufferMemory);
+        createVertexBuffer(skyboxVertices, skyboxVertexBuffer, skyboxVertexBufferMemory);
+        createIndexBuffer(indices, indexBuffer, indexBufferMemory);
+        createIndexBuffer(skyboxIndices, skyboxIndexBuffer, skyboxIndexBufferMemory);
         createUnifomBuffers();
         createDescriptorPool();
         createDescriptorSet();
@@ -583,8 +653,16 @@ private:
         allocInfo.descriptorSetCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
         allocInfo.pSetLayouts = layouts.data();
 
+        
         descriptorSets.resize(MAX_FRAMES_IN_FLIGHT);
         if (vkAllocateDescriptorSets(device, &allocInfo, descriptorSets.data()) != VK_SUCCESS) {
+            throw std::runtime_error("failed to allocate descriptor sets!");
+        }
+
+        allocInfo.descriptorPool = skyboxDescriptorPool;
+
+        skyboxDescriptorSets.resize(MAX_FRAMES_IN_FLIGHT);
+        if (vkAllocateDescriptorSets(device, &allocInfo, skyboxDescriptorSets.data()) != VK_SUCCESS) {
             throw std::runtime_error("failed to allocate descriptor sets!");
         }
 
@@ -598,6 +676,8 @@ private:
             imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
             imageInfo.imageView = textureImageView;
             imageInfo.sampler = textureSampler;
+            //imageInfo.imageView = skyboxImageView;
+            //imageInfo.sampler = skyboxSampler;
 
             std::array<VkWriteDescriptorSet, 2> descriptorWrites{};
             descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -612,6 +692,41 @@ private:
 
             descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
             descriptorWrites[1].dstSet = descriptorSets[i];
+            descriptorWrites[1].dstBinding = 1;
+            descriptorWrites[1].dstArrayElement = 0;
+            descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+            descriptorWrites[1].descriptorCount = 1;
+            descriptorWrites[1].pImageInfo = &imageInfo;
+
+            vkUpdateDescriptorSets(device, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
+        }
+
+        for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+            VkDescriptorBufferInfo bufferInfo{};
+            bufferInfo.buffer = uniformBuffers[i];
+            bufferInfo.offset = 0;
+            bufferInfo.range = sizeof(UniformBufferObject);
+
+            VkDescriptorImageInfo imageInfo{};
+            imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+            //imageInfo.imageView = textureImageView;
+            //imageInfo.sampler = textureSampler;
+            imageInfo.imageView = skyboxImageView;
+            imageInfo.sampler = skyboxSampler;
+
+            std::array<VkWriteDescriptorSet, 2> descriptorWrites{};
+            descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            descriptorWrites[0].dstSet = skyboxDescriptorSets[i];
+            descriptorWrites[0].dstBinding = 0;
+            descriptorWrites[0].dstArrayElement = 0;
+            descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+            descriptorWrites[0].descriptorCount = 1;
+            descriptorWrites[0].pBufferInfo = &bufferInfo;
+            descriptorWrites[0].pImageInfo = nullptr;
+            descriptorWrites[0].pTexelBufferView = nullptr;
+
+            descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            descriptorWrites[1].dstSet = skyboxDescriptorSets[i];
             descriptorWrites[1].dstBinding = 1;
             descriptorWrites[1].dstArrayElement = 0;
             descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
@@ -637,6 +752,10 @@ private:
         poolInfo.maxSets = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
 
         if (vkCreateDescriptorPool(device, &poolInfo, nullptr, &descriptorPool)) {
+            throw std::runtime_error("failed to create descriptor pool!");
+        }
+
+        if (vkCreateDescriptorPool(device, &poolInfo, nullptr, &skyboxDescriptorPool)) {
             throw std::runtime_error("failed to create descriptor pool!");
         }
     }
@@ -682,7 +801,7 @@ private:
         }
     }
 
-    void createIndexBuffer() {
+    void createIndexBuffer(std::vector<uint32_t> indices, VkBuffer& indexBuffer, VkDeviceMemory& indexBufferMemory) {
         VkDeviceSize bufferSize = sizeof(indices[0]) * indices.size();
 
         VkBuffer stagingBuffer;
@@ -863,7 +982,7 @@ private:
         endSingleTimeCommands(commandBuffer);
     }
 
-    void createVertexBuffer() {
+    void createVertexBuffer(std::vector<Vertex> vertices, VkBuffer& vertexBuffer, VkDeviceMemory& vertexBufferMemory) {
         VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
         
         VkBuffer stagingBuffer;
@@ -932,12 +1051,17 @@ private:
         }
 
         vkDestroyDescriptorPool(device, descriptorPool, nullptr);
+        vkDestroyDescriptorPool(device, skyboxDescriptorPool, nullptr);
 
         vkDestroyDescriptorSetLayout(device, descriptorSetLayout, nullptr);
 
+        vkDestroyBuffer(device, skyboxVertexBuffer, nullptr);
+        vkFreeMemory(device, skyboxVertexBufferMemory, nullptr);
         vkDestroyBuffer(device, vertexBuffer, nullptr);
         vkFreeMemory(device, vertexBufferMemory, nullptr);
 
+        vkDestroyBuffer(device, skyboxIndexBuffer, nullptr);
+        vkFreeMemory(device, skyboxIndexBufferMemory, nullptr);
         vkDestroyBuffer(device, indexBuffer, nullptr);
         vkFreeMemory(device, indexBufferMemory, nullptr);
 
@@ -1155,11 +1279,18 @@ private:
         //vkCmdDraw(commandBuffer, static_cast<uint32_t>(vertices.size()), 1, 0, 0);
         vkCmdDrawIndexed(commandBuffer,static_cast<uint32_t>(indices.size()),1,0,0,0);
 
-        vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsTestPipeline);
+        //draw skybox
+        //vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsTestPipeline);
 
-        vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, testPipelineLayout, 0, 1, &descriptorSets[currentFrame], 0, nullptr);
+        //vertexBuffers[0] = skyboxVertexBuffer;
 
-        vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
+        //vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
+
+        //vkCmdBindIndexBuffer(commandBuffer, skyboxIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
+
+        //vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, testPipelineLayout, 0, 1, &skyboxDescriptorSets[currentFrame], 0, nullptr);
+
+        //vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(skyboxIndices.size()), 1, 0, 0, 0);
         
         vkCmdEndRenderPass(commandBuffer);
 
@@ -1337,8 +1468,8 @@ private:
     }
 
     void createTestGraphicsPipeline() {
-        auto vertShaderCode = readFile("Shaders/testVert.spv");
-        auto fragShaderCode = readFile("Shaders/testFrag.spv");
+        auto vertShaderCode = readFile("Shaders/skyboxVert.spv");
+        auto fragShaderCode = readFile("Shaders/skyboxFrag.spv");
 
         VkShaderModule vertShaderModule = createShaderModule(vertShaderCode);
         VkShaderModule fragShaderModule = createShaderModule(fragShaderCode);
@@ -1423,6 +1554,7 @@ private:
         rasterizer.depthBiasConstantFactor = 0.f;
         rasterizer.depthBiasClamp = 0.f;
         rasterizer.depthBiasSlopeFactor = 0.f;
+        //rasterizer.cullMode = VK_CULL_MODE_FRONT_AND_BACK;
         //rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
         rasterizer.cullMode = VK_CULL_MODE_NONE;
         rasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
@@ -1866,7 +1998,7 @@ private:
         UniformBufferObject ubo{};
         //ubo.model = glm::rotate(glm::mat4(1.f), time * glm::radians(90.f), glm::vec3(0.f,1.f,0.f));
         ubo.model = glm::mat4(1.f);
-        ubo.view = glm::lookAt(glm::vec3(2.f,2.f,2.f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+        ubo.view = glm::lookAt(glm::vec3(6.f,6.f,6.f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
         ubo.proj = glm::perspective(glm::radians(45.f), swapChainExtent.width / (float) swapChainExtent.height, 0.1f, 10.f);
         ubo.proj[1][1] *= -1;
 
