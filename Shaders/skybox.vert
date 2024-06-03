@@ -22,5 +22,6 @@ void main()
 	//gl_Position = ubo.proj * viewMat * vec4(aPos, 1.0);
 
     vec4 pos = ubo.proj * ubo.view * vec4(aPos, 1.0);
+    //gl_Position = vec4(pos.xy,1,1);
     gl_Position = pos.xyww;
 }
