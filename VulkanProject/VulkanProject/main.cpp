@@ -132,22 +132,40 @@ namespace std {
     };
 }
 
-//const std::vector<Vertex> vertices = {
-//    {{0.5f, -0.5f, 0.f}, {1.0f, 0.0f, 0.0f}, {1.0f,0.f}},
-//    {{0.5f, 0.5f, 0.f}, {0.0f, 1.0f, 0.0f}, {0.0f,0.f}},
-//    {{-0.5f, 0.5f, 0.f}, {0.0f, 0.0f, 1.0f}, {0.0f,1.f}},
-//    {{-0.5f, -0.5f, 0.f}, {1.0f, 0.0f, 0.0f}, {1.0f,1.f}},
-//
-//    {{0.5f, -0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}, {1.0f,0.f}},
-//    {{0.5f, 0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f,0.f}},
-//    {{-0.5f, 0.5f, -0.5f}, {0.0f, 0.0f, 1.0f}, {0.0f,1.f}},
-//    {{-0.5f, -0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}, {1.0f,1.f}},
-//};
-//
-//const std::vector<uint16_t> indices = {
-//    0, 1, 2, 2, 3, 0,
-//    4, 5, 6, 6, 7, 4
-//};
+const std::vector<Vertex> boxVertices = {
+    {{-1.f, -1.f, -1.f}, {1.0f, 0.0f, 0.0f}, {1.0f,0.f}},
+    {{-1.f, 1.f, -1.f}, {1.0f, 0.0f, 0.0f}, {0.0f,0.f}},
+    {{-1.f, -1.f, 1.f}, {1.0f, 0.0f, 0.0f}, {0.0f,1.f}},
+    {{-1.f, 1.f, 1.f}, {1.0f, 0.0f, 0.0f}, {1.0f,1.f}},
+
+    {{-1.f, 1.f, 1.f}, {1.0f, 1.0f, 1.0f}, {1.0f,0.f}},
+    {{-1.f, 1.f, -1.f}, {1.0f, 1.0f, 1.0f}, {0.0f,0.f}},
+    {{1.f, 1.f, 1.f}, {1.0f, 1.0f, 1.0f}, {0.0f,1.f}},
+    {{1.f, 1.f, -1.f}, {1.0f, 1.0f, 1.0f}, {1.0f,1.f}},
+
+    {{-1.f, -1.f, 1.f}, {1.0f, 1.0f, 1.0f}, {1.0f,0.f}},
+    {{-1.f, -1.f, -1.f}, {1.0f, 1.0f, 1.0f}, {0.0f,0.f}},
+    {{1.f, -1.f, 1.f}, {1.0f, 1.0f, 1.0f}, {0.0f,1.f}},
+    {{1.f, -1.f, -1.f}, {1.0f, 1.0f, 1.0f}, {1.0f,1.f}},
+
+    {{1.f, -1.f, -1.f}, {0.0f, 1.0f, 0.243f}, {1.0f,0.f}},
+    {{1.f, 1.f, -1.f}, {0.0f, 1.0f, 0.243f}, {0.0f,0.f}},
+    {{1.f, -1.f, 1.f}, {0.0f, 1.0f, 0.243f}, {0.0f,1.f}},
+    {{1.f, 1.f, 1.f}, {0.0f, 1.0f, 0.243f}, {1.0f,1.f}},
+
+    {{1.f, -1.f, -1.f}, {1.0f, 1.0f, 1.f}, {1.0f,0.f}},
+    {{1.f, 1.f, -1.f}, {1.0f, 1.0f, 1.f}, {0.0f,0.f}},
+    {{-1.f, -1.f, -1.f}, {1.0f, 1.0f, 1.f}, {1.0f,0.f}},
+    {{-1.f, 1.f, -1.f}, {1.0f, 1.0f, 1.f}, {0.0f,0.f}},
+};
+
+const std::vector<uint32_t> boxIndices = {
+    0, 1, 2, 1, 2, 3,
+    4, 5, 6, 5, 6, 7,
+    8, 9, 10, 9, 10, 11,
+    12, 13, 14, 13, 14, 15,
+    16, 17, 18, 17, 18, 19
+};
 
 const std::vector<Vertex> skyboxVertices = {
     //back face
@@ -192,10 +210,10 @@ const std::vector<Vertex> skyboxVertices = {
     {{-1.0f,  1.0f, -1.0f },{1.0f, 0.0f, 0.0f}, {0.25f,0.6667f}},
 
     //bottom
-    {{-1.0f, -1.0f, -1.0f },{1.0f, 0.0f, 0.0f}, {0.25f,0.3333f}},
-    {{-1.0f, -1.0f,  1.0f },{1.0f, 0.0f, 0.0f}, {0.25f,0.f}},
-    {{1.0f, -1.0f, -1.0f },{1.0f, 0.0f, 0.0f}, {0.5f,0.3333f}},
-    {{1.0f, -1.0f, -1.0f },{1.0f, 0.0f, 0.0f}, {0.5f,0.3333f}},
+    {{-1.0f, -1.0f, -1.0f },{1.0f, 1.0f, 0.0f}, {0.25f,0.3333f}},
+    {{-1.0f, -1.0f,  1.0f },{1.0f, 1.0f, 0.0f}, {0.25f,0.f}},
+    {{1.0f, -1.0f, -1.0f },{1.0f, 1.0f, 0.0f}, {0.5f,0.3333f}},
+    {{1.0f, -1.0f, -1.0f },{1.0f, 1.0f, 0.0f}, {0.5f,0.3333f}},
     {{-1.0f, -1.0f,  1.0f }, {1.0f, 0.0f, 0.0f}, {0.25f,0.f}},
     {{1.0f, -1.0f,  1.0f }, {1.0f, 0.0f, 0.0f}, {0.5f,0.f}},
 };
@@ -266,11 +284,13 @@ private:
     VkDescriptorSetLayout descriptorSetLayout;
     VkPipelineLayout testPipelineLayout;
     VkPipelineLayout pipelineLayout;
+    VkPipelineLayout boxPipelineLayout;
 
     VkRenderPass renderPass;
 
     VkPipeline graphicsTestPipeline;
     VkPipeline graphicsPipeline;
+    VkPipeline boxPipeline;
 
     std::vector<VkFramebuffer> swapChainFramebuffers;
 
@@ -285,14 +305,19 @@ private:
     VkBuffer skyboxVertexBuffer;
     VkDeviceMemory skyboxVertexBufferMemory;
 
+    VkBuffer cubeboxVertexBuffer;
+    VkDeviceMemory cubeboxVertexBufferMemory;
+
     VkBuffer indexBuffer;
     VkDeviceMemory indexBufferMemory;
 
-
-    uint32_t mipLevels;
     VkBuffer skyboxIndexBuffer;
     VkDeviceMemory skyboxIndexBufferMemory;
 
+    VkBuffer cubeboxIndexBuffer;
+    VkDeviceMemory cubeboxIndexBufferMemory;
+
+    uint32_t mipLevels;
 
     VkImage textureImage;
     VkDeviceMemory textureImageMemory;
@@ -312,6 +337,8 @@ private:
     std::vector<VkDescriptorSet> descriptorSets;
     VkDescriptorPool skyboxDescriptorPool;
     std::vector<VkDescriptorSet> skyboxDescriptorSets;
+    VkDescriptorPool cubeboxDescriptorPool;
+    std::vector<VkDescriptorSet> cubeboxDescriptorSets;
 
     std::vector<VkCommandBuffer> commandBuffers;
 
@@ -346,7 +373,8 @@ private:
         createRenderPass();
         createDescriptorSetLayout();
         createTestGraphicsPipeline();
-        createGraphicsPipeline();
+        createGraphicsPipeline("Shaders/vert.spv", "Shaders/frag.spv", pipelineLayout, graphicsPipeline);
+        createGraphicsPipeline("Shaders/cubeBoxVert.spv", "Shaders/cubeBoxFrag.spv", boxPipelineLayout, boxPipeline);
         createCommandPool();
         createDepthResources();
         createFramebuffers();
@@ -359,8 +387,10 @@ private:
         loadModel();
         createVertexBuffer(vertices, vertexBuffer, vertexBufferMemory);
         createVertexBuffer(skyboxVertices, skyboxVertexBuffer, skyboxVertexBufferMemory);
+        createVertexBuffer(boxVertices, cubeboxVertexBuffer, cubeboxVertexBufferMemory);
         createIndexBuffer(indices, indexBuffer, indexBufferMemory);
         createIndexBuffer(skyboxIndices, skyboxIndexBuffer, skyboxIndexBufferMemory);
+        createIndexBuffer(boxIndices, cubeboxIndexBuffer, cubeboxIndexBufferMemory);
         createUnifomBuffers();
         createDescriptorPool();
         createDescriptorSet();
@@ -673,6 +703,13 @@ private:
             throw std::runtime_error("failed to allocate descriptor sets!");
         }
 
+        allocInfo.descriptorPool = cubeboxDescriptorPool;
+
+        cubeboxDescriptorSets.resize(MAX_FRAMES_IN_FLIGHT);
+        if (vkAllocateDescriptorSets(device, &allocInfo, cubeboxDescriptorSets.data()) != VK_SUCCESS) {
+            throw std::runtime_error("failed to allocate descriptor sets!");
+        }
+
         for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
             VkDescriptorBufferInfo bufferInfo{};
             bufferInfo.buffer = uniformBuffers[i];
@@ -716,8 +753,6 @@ private:
 
             VkDescriptorImageInfo imageInfo{};
             imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-            //imageInfo.imageView = textureImageView;
-            //imageInfo.sampler = textureSampler;
             imageInfo.imageView = skyboxImageView;
             imageInfo.sampler = skyboxSampler;
 
@@ -743,6 +778,39 @@ private:
             vkUpdateDescriptorSets(device, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
         }
 
+        for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+            VkDescriptorBufferInfo bufferInfo{};
+            bufferInfo.buffer = uniformBuffers[i];
+            bufferInfo.offset = 0;
+            bufferInfo.range = sizeof(UniformBufferObject);
+
+            //VkDescriptorImageInfo imageInfo{};
+            //imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+            //imageInfo.imageView = skyboxImageView;
+            //imageInfo.sampler = skyboxSampler;
+
+            std::array<VkWriteDescriptorSet, 1> descriptorWrites{};
+            descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            descriptorWrites[0].dstSet = cubeboxDescriptorSets[i];
+            descriptorWrites[0].dstBinding = 0;
+            descriptorWrites[0].dstArrayElement = 0;
+            descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+            descriptorWrites[0].descriptorCount = 1;
+            descriptorWrites[0].pBufferInfo = &bufferInfo;
+            descriptorWrites[0].pImageInfo = nullptr;
+            descriptorWrites[0].pTexelBufferView = nullptr;
+
+            //descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            //descriptorWrites[1].dstSet = cubeboxDescriptorSets[i];
+            //descriptorWrites[1].dstBinding = 1;
+            //descriptorWrites[1].dstArrayElement = 0;
+            //descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+            //descriptorWrites[1].descriptorCount = 1;
+            //descriptorWrites[1].pImageInfo = nullptr;
+
+            vkUpdateDescriptorSets(device, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
+        }
+
     }
 
     void createDescriptorPool() {
@@ -763,6 +831,10 @@ private:
         }
 
         if (vkCreateDescriptorPool(device, &poolInfo, nullptr, &skyboxDescriptorPool)) {
+            throw std::runtime_error("failed to create descriptor pool!");
+        }
+
+        if (vkCreateDescriptorPool(device, &poolInfo, nullptr, &cubeboxDescriptorPool)) {
             throw std::runtime_error("failed to create descriptor pool!");
         }
     }
@@ -1059,19 +1131,26 @@ private:
 
         vkDestroyDescriptorPool(device, descriptorPool, nullptr);
         vkDestroyDescriptorPool(device, skyboxDescriptorPool, nullptr);
+        vkDestroyDescriptorPool(device, cubeboxDescriptorPool, nullptr);
 
         vkDestroyDescriptorSetLayout(device, descriptorSetLayout, nullptr);
 
+        vkDestroyBuffer(device, cubeboxVertexBuffer, nullptr);
+        vkFreeMemory(device, cubeboxVertexBufferMemory, nullptr);
         vkDestroyBuffer(device, skyboxVertexBuffer, nullptr);
         vkFreeMemory(device, skyboxVertexBufferMemory, nullptr);
         vkDestroyBuffer(device, vertexBuffer, nullptr);
         vkFreeMemory(device, vertexBufferMemory, nullptr);
 
+        vkDestroyBuffer(device, cubeboxIndexBuffer, nullptr);
+        vkFreeMemory(device, cubeboxIndexBufferMemory, nullptr);
         vkDestroyBuffer(device, skyboxIndexBuffer, nullptr);
         vkFreeMemory(device, skyboxIndexBufferMemory, nullptr);
         vkDestroyBuffer(device, indexBuffer, nullptr);
         vkFreeMemory(device, indexBufferMemory, nullptr);
 
+        vkDestroyPipeline(device, boxPipeline, nullptr);
+        vkDestroyPipelineLayout(device, boxPipelineLayout, nullptr);
         vkDestroyPipeline(device, graphicsTestPipeline, nullptr);
         vkDestroyPipelineLayout(device, testPipelineLayout, nullptr);
         vkDestroyPipeline(device, graphicsPipeline, nullptr);
@@ -1298,6 +1377,19 @@ private:
         vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, testPipelineLayout, 0, 1, &skyboxDescriptorSets[currentFrame], 0, nullptr);
 
         vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(skyboxIndices.size()), 1, 0, 0, 0);
+
+        //draw cube
+        vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, boxPipeline);
+
+        vertexBuffers[0] = cubeboxVertexBuffer;
+
+        vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
+
+        vkCmdBindIndexBuffer(commandBuffer, cubeboxIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
+
+        vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, boxPipelineLayout, 0, 1, &cubeboxDescriptorSets[currentFrame], 0, nullptr);
+
+        vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(boxIndices.size()), 1, 0, 0, 0);
         
         vkCmdEndRenderPass(commandBuffer);
 
@@ -1633,10 +1725,10 @@ private:
         vkDestroyShaderModule(device, vertShaderModule, nullptr);
     }
 
-    void createGraphicsPipeline() {
+    void createGraphicsPipeline(std::string vertShaderPath, std::string fragShaderPath, VkPipelineLayout& pipelineLayout, VkPipeline& graphicsPipeline) {
 
-        auto vertShaderCode = readFile("Shaders/vert.spv");
-        auto fragShaderCode = readFile("Shaders/frag.spv");
+        auto vertShaderCode = readFile(vertShaderPath.c_str());
+        auto fragShaderCode = readFile(fragShaderPath.c_str());
 
         VkShaderModule vertShaderModule = createShaderModule(vertShaderCode);
         VkShaderModule fragShaderModule = createShaderModule(fragShaderCode);
