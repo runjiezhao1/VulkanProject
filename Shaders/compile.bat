@@ -4,4 +4,6 @@ C:/VulkanSDK/1.3.280.0/Bin/glslc.exe skybox.frag -o ../VulkanProject/VulkanProje
 C:/VulkanSDK/1.3.280.0/Bin/glslc.exe skybox.vert -o ../VulkanProject/VulkanProject/shaders/skyboxVert.spv
 C:/VulkanSDK/1.3.280.0/Bin/glslc.exe testShader.frag -o ../VulkanProject/VulkanProject/shaders/testFrag.spv
 C:/VulkanSDK/1.3.280.0/Bin/glslc.exe testShader.vert -o ../VulkanProject/VulkanProject/shaders/testVert.spv
+C:/VulkanSDK/1.3.280.0/Bin/glslc.exe cubeBox.frag -o ../VulkanProject/VulkanProject/shaders/cubeBoxFrag.spv
+C:/VulkanSDK/1.3.280.0/Bin/glslc.exe cubeBox.vert -o ../VulkanProject/VulkanProject/shaders/cubeBoxVert.spv
 pause
