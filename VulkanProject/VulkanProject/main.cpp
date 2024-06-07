@@ -128,6 +128,7 @@ struct UniformBufferObject {
     glm::mat4 view;
     glm::mat4 proj;
     glm::vec3 pos;
+    glm::vec3 lightPos;
 };
 
 namespace std {
@@ -2140,6 +2141,7 @@ private:
         
         UniformBufferObject ubo{};
         ubo.pos = camera.Position;
+        ubo.lightPos = glm::vec3(0,.75f,0);
         //ubo.model = glm::rotate(glm::mat4(1.f), time * glm::radians(90.f), glm::vec3(0.f,1.f,0.f));
         ubo.model = glm::mat4(1.f);
         //ubo.view = glm::lookAt(glm::vec3(6.f,6.f,6.f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));

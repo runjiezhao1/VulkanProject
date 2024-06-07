@@ -12,9 +12,21 @@ layout(binding = 0) uniform UniformBufferObject{
     mat4 view;
     mat4 proj;
     vec3 pos;
+    vec3 lightPos;
 } ubo;
 
 void main() {
     gl_Position = ubo.proj * ubo.view * ubo.model * vec4(inPosition+vec3(0,0,0), 1.0);
-    fragColor = abs(inNormal);
+    
+    vec3 lightDir = normalize(ubo.lightPos - inPosition);
+    vec3 viewDir = normalize(ubo.pos - inPosition);
+    vec3 halfwayDir = normalize(lightDir + viewDir);
+
+    float shininess = 2.f;
+
+    float spec = pow(max(dot(inNormal, halfwayDir),0), shininess);
+
+    vec3 specular = inColor * spec;
+
+    fragColor = specular;
 }
