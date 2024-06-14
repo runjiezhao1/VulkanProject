@@ -127,6 +127,8 @@ struct UniformBufferObject {
     glm::mat4 model;
     glm::mat4 view;
     glm::mat4 proj;
+    glm::mat4 lightView;
+    glm::mat4 lightProjection;
     glm::vec3 pos;
     glm::vec3 lightPos;
 };
@@ -140,6 +142,60 @@ namespace std {
         }
     };
 }
+
+const std::vector<Vertex> shadowDepthVertices = {
+    //left
+    {{-1.f, -1.f, -1.f}, {1.0f, 0.0f, 0.0f}, {1.0f,0.f}, {-1,0,0}},
+    {{-1.f, 1.f, -1.f}, {1.0f, 0.0f, 0.0f}, {0.0f,0.f}, {-1,0,0}},
+    {{-1.f, -1.f, 1.f}, {1.0f, 0.0f, 0.0f}, {0.0f,1.f}, {-1,0,0}},
+    {{-1.f, 1.f, 1.f}, {1.0f, 0.0f, 0.0f}, {1.0f,1.f}, {-1,0,0}},
+
+    //top
+    {{-1.f, 1.f, 1.f}, {1.0f, 1.0f, 1.0f}, {1.0f,0.f}, { 0,1,0 }},
+    {{-1.f, 1.f, -1.f}, {1.0f, 1.0f, 1.0f}, {0.0f,0.f}, { 0,1,0 }},
+    {{1.f, 1.f, 1.f}, {1.0f, 1.0f, 1.0f}, {0.0f,1.f}, { 0,1,0 }},
+    {{1.f, 1.f, -1.f}, {1.0f, 1.0f, 1.0f}, {1.0f,1.f}, { 0,1,0 }},
+
+    //bottom
+    {{-1.f, -1.f, 1.f}, {1.0f, 1.0f, 1.0f}, {1.0f,0.f}, { 0,-1,0 }},
+    {{-1.f, -1.f, -1.f}, {1.0f, 1.0f, 1.0f}, {0.0f,0.f}, { 0,-1,0 }},
+    {{1.f, -1.f, 1.f}, {1.0f, 1.0f, 1.0f}, {0.0f,1.f}, { 0,-1,0 }},
+    {{1.f, -1.f, -1.f}, {1.0f, 1.0f, 1.0f}, {1.0f,1.f}, { 0,-1,0 }},
+
+    //right
+    {{1.f, -1.f, -1.f}, {0.0f, 1.0f, 0.243f}, {1.0f,0.f}, { 1,0,0 }},
+    {{1.f, 1.f, -1.f}, {0.0f, 1.0f, 0.243f}, {0.0f,0.f}, { 1,0,0 }},
+    {{1.f, -1.f, 1.f}, {0.0f, 1.0f, 0.243f}, {0.0f,1.f}, { 1,0,0 }},
+    {{1.f, 1.f, 1.f}, {0.0f, 1.0f, 0.243f}, {1.0f,1.f}, { 1,0,0 }},
+
+    //back
+    {{1.f, -1.f, -1.f}, {1.0f, 1.0f, 1.f}, {1.0f,0.f}, { 0,0,-1 }},
+    {{1.f, 1.f, -1.f}, {1.0f, 1.0f, 1.f}, {0.0f,0.f}, { 0,0,-1 }},
+    {{-1.f, -1.f, -1.f}, {1.0f, 1.0f, 1.f}, {1.0f,0.f}, { 0,0,-1 }},
+    {{-1.f, 1.f, -1.f}, {1.0f, 1.0f, 1.f}, {0.0f,0.f}, { 0,0,-1 }},
+
+    //front
+    {{1.f, -1.f, 1.f}, {1.0f, 1.0f, 1.f}, {1.0f,0.f}, { 0,0,1 }},
+    {{1.f, 1.f, 1.f}, {1.0f, 1.0f, 1.f}, {0.0f,0.f}, { 0,0,1 }},
+    {{-1.f, -1.f, 1.f}, {1.0f, 1.0f, 1.f}, {1.0f,0.f}, { 0,0,1 }},
+    {{-1.f, 1.f, 1.f}, {1.0f, 1.0f, 1.f}, {0.0f,0.f}, { 0,0,1 }},
+
+    //plane
+    {{-4.f, 2.f, 4.f}, {1.0f, 1.0f, 1.0f}, {1.0f,0.f}, { 0,-1,0 }},
+    {{-4.f, 2.f, -4.f}, {1.0f, 1.0f, 1.0f}, {0.0f,0.f}, { 0,-1,0 }},
+    {{4.f, 2.f, 4.f}, {1.0f, 1.0f, 1.0f}, {0.0f,1.f}, { 0,-1,0 }},
+    {{4.f, 2.f, -4.f}, {1.0f, 1.0f, 1.0f}, {1.0f,1.f}, { 0,-1,0 }},
+};
+
+const std::vector<uint32_t> shadowDepthIndices = {
+    0, 1, 2, 2, 1, 3,
+    4, 5, 6, 5, 7, 6,
+    8, 10, 9, 9, 10, 11,
+    12, 14, 13, 13, 14, 15,
+    16, 17, 18, 17, 19, 18,
+    20, 22, 21, 21, 22, 23,
+    24, 26, 25, 25, 26, 27
+};
 
 const std::vector<Vertex> boxVertices = {
     //left
@@ -296,17 +352,21 @@ private:
     std::vector<VkImageView> swapChainImageViews;
 
     VkDescriptorSetLayout descriptorSetLayout;
-    VkPipelineLayout testPipelineLayout;
+    VkPipelineLayout skyboxPipelineLayout;
     VkPipelineLayout pipelineLayout;
     VkPipelineLayout boxPipelineLayout;
+    VkPipelineLayout shadowImagePipelineLayout;
 
     VkRenderPass renderPass;
+    VkRenderPass shadowImageRenderPass;
 
-    VkPipeline graphicsTestPipeline;
+    VkPipeline skyboxPipeline;
     VkPipeline graphicsPipeline;
     VkPipeline boxPipeline;
+    VkPipeline shadowImagePipeline;
 
     std::vector<VkFramebuffer> swapChainFramebuffers;
+    VkFramebuffer shadowImageFramebuffer;
 
     VkCommandPool commandPool;
 
@@ -331,6 +391,12 @@ private:
     VkBuffer cubeboxIndexBuffer;
     VkDeviceMemory cubeboxIndexBufferMemory;
 
+    VkBuffer shadowDepthVertexBuffer;
+    VkDeviceMemory shadowDepthVertexBufferMemory;
+
+    VkBuffer shadowDepthIndexBuffer;
+    VkDeviceMemory shadowDepthIndexBufferMemory;
+
     uint32_t mipLevels;
 
     VkImage textureImage;
@@ -353,6 +419,8 @@ private:
     std::vector<VkDescriptorSet> skyboxDescriptorSets;
     VkDescriptorPool cubeboxDescriptorPool;
     std::vector<VkDescriptorSet> cubeboxDescriptorSets;
+    VkDescriptorPool shadowImageDescriptorPool;
+    std::vector<VkDescriptorSet> shadowImageDescriptorSets;
 
     std::vector<VkCommandBuffer> commandBuffers;
 
@@ -364,6 +432,11 @@ private:
     VkImage depthImage;
     VkDeviceMemory depthImageMemory;
     VkImageView depthImageView;
+
+    VkImage shadowDepthImage;
+    VkDeviceMemory shadowDepthImageMemory;
+    VkImageView shadowDepthImageView;
+    VkSampler shadowDepthImageSampler;
 
     bool framebufferResized = false;
 
@@ -385,10 +458,12 @@ private:
         createSwapChain();
         createImageViews();
         createRenderPass();
+        prepareOffScreen();
         createDescriptorSetLayout();
         createTestGraphicsPipeline();
         createGraphicsPipeline("Shaders/vert.spv", "Shaders/frag.spv", pipelineLayout, graphicsPipeline);
         createGraphicsPipeline("Shaders/cubeBoxVert.spv", "Shaders/cubeBoxFrag.spv", boxPipelineLayout, boxPipeline);
+        createGraphicsPipeline("Shaders/testVert.spv","Shaders/testFrag.spv", shadowImagePipelineLayout, shadowImagePipeline);
         createCommandPool();
         createDepthResources();
         createFramebuffers();
@@ -399,9 +474,11 @@ private:
         createTextureSampler(textureSampler);
         createTextureSampler(skyboxSampler);
         loadModel();
+        createVertexBuffer(shadowDepthVertices, shadowDepthVertexBuffer, shadowDepthVertexBufferMemory);
         createVertexBuffer(vertices, vertexBuffer, vertexBufferMemory);
         createVertexBuffer(skyboxVertices, skyboxVertexBuffer, skyboxVertexBufferMemory);
         createVertexBuffer(boxVertices, cubeboxVertexBuffer, cubeboxVertexBufferMemory);
+        createIndexBuffer(shadowDepthIndices, shadowDepthIndexBuffer, shadowDepthIndexBufferMemory);
         createIndexBuffer(indices, indexBuffer, indexBufferMemory);
         createIndexBuffer(skyboxIndices, skyboxIndexBuffer, skyboxIndexBufferMemory);
         createIndexBuffer(boxIndices, cubeboxIndexBuffer, cubeboxIndexBufferMemory);
@@ -565,7 +642,7 @@ private:
     void createDepthResources() {
         VkFormat depthFormat = findDepthFormat();
         createImage(swapChainExtent.width, swapChainExtent.height, 1, depthFormat, VK_IMAGE_TILING_OPTIMAL, 
-            VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+            VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
             depthImage, depthImageMemory);
         depthImageView = createImageView(depthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, 1);
         transitionImageLayout(depthImage, depthFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, 1);
@@ -724,6 +801,12 @@ private:
             throw std::runtime_error("failed to allocate descriptor sets!");
         }
 
+        allocInfo.descriptorPool = shadowImageDescriptorPool;
+        shadowImageDescriptorSets.resize(MAX_FRAMES_IN_FLIGHT);
+        if (vkAllocateDescriptorSets(device, &allocInfo, shadowImageDescriptorSets.data()) != VK_SUCCESS) {
+            throw std::runtime_error("failed to allocate descriptor sets!");
+        }
+
         for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
             VkDescriptorBufferInfo bufferInfo{};
             bufferInfo.buffer = uniformBuffers[i];
@@ -734,8 +817,6 @@ private:
             imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
             imageInfo.imageView = textureImageView;
             imageInfo.sampler = textureSampler;
-            //imageInfo.imageView = skyboxImageView;
-            //imageInfo.sampler = skyboxSampler;
 
             std::array<VkWriteDescriptorSet, 2> descriptorWrites{};
             descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -759,6 +840,7 @@ private:
             vkUpdateDescriptorSets(device, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
         }
 
+        //skybox
         for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
             VkDescriptorBufferInfo bufferInfo{};
             bufferInfo.buffer = uniformBuffers[i];
@@ -792,6 +874,7 @@ private:
             vkUpdateDescriptorSets(device, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
         }
 
+        //cube box
         for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
             VkDescriptorBufferInfo bufferInfo{};
             bufferInfo.buffer = uniformBuffers[i];
@@ -800,8 +883,8 @@ private:
 
             //VkDescriptorImageInfo imageInfo{};
             //imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-            //imageInfo.imageView = skyboxImageView;
-            //imageInfo.sampler = skyboxSampler;
+            //imageInfo.imageView = depthImageView;
+            //imageInfo.sampler = depthImageSampler;
 
             std::array<VkWriteDescriptorSet, 1> descriptorWrites{};
             descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -818,9 +901,30 @@ private:
             //descriptorWrites[1].dstSet = cubeboxDescriptorSets[i];
             //descriptorWrites[1].dstBinding = 1;
             //descriptorWrites[1].dstArrayElement = 0;
-            //descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+            //descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER; //VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
             //descriptorWrites[1].descriptorCount = 1;
-            //descriptorWrites[1].pImageInfo = nullptr;
+            //descriptorWrites[1].pImageInfo = &imageInfo;
+
+            vkUpdateDescriptorSets(device, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
+        }
+
+        //shadow depth
+        for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+            VkDescriptorBufferInfo bufferInfo{};
+            bufferInfo.buffer = uniformBuffers[i];
+            bufferInfo.offset = 0;
+            bufferInfo.range = sizeof(UniformBufferObject);
+
+            std::array<VkWriteDescriptorSet, 1> descriptorWrites{};
+            descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            descriptorWrites[0].dstSet = shadowImageDescriptorSets[i];
+            descriptorWrites[0].dstBinding = 0;
+            descriptorWrites[0].dstArrayElement = 0;
+            descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+            descriptorWrites[0].descriptorCount = 1;
+            descriptorWrites[0].pBufferInfo = &bufferInfo;
+            descriptorWrites[0].pImageInfo = nullptr;
+            descriptorWrites[0].pTexelBufferView = nullptr;
 
             vkUpdateDescriptorSets(device, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
         }
@@ -849,6 +953,10 @@ private:
         }
 
         if (vkCreateDescriptorPool(device, &poolInfo, nullptr, &cubeboxDescriptorPool)) {
+            throw std::runtime_error("failed to create descriptor pool!");
+        }
+
+        if (vkCreateDescriptorPool(device, &poolInfo, nullptr, &shadowImageDescriptorPool)) {
             throw std::runtime_error("failed to create descriptor pool!");
         }
     }
@@ -1128,6 +1236,8 @@ private:
 
         cleanupSwapChain();
 
+        vkDestroyFramebuffer(device, shadowImageFramebuffer, nullptr);
+
         vkDestroySampler(device, textureSampler, nullptr);
         vkDestroyImageView(device, textureImageView, nullptr);
         vkDestroyImage(device, textureImage, nullptr);
@@ -1138,6 +1248,11 @@ private:
         vkDestroyImage(device, skyboxImage, nullptr);
         vkFreeMemory(device, skyboxImageMemory, nullptr);
 
+        vkDestroySampler(device, shadowDepthImageSampler, nullptr);
+        vkDestroyImageView(device, shadowDepthImageView, nullptr);
+        vkDestroyImage(device, shadowDepthImage, nullptr);
+        vkFreeMemory(device, shadowDepthImageMemory, nullptr);
+
         for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
             vkDestroyBuffer(device, uniformBuffers[i], nullptr);
             vkFreeMemory(device, uniformBuffersMemory[i], nullptr);
@@ -1146,9 +1261,12 @@ private:
         vkDestroyDescriptorPool(device, descriptorPool, nullptr);
         vkDestroyDescriptorPool(device, skyboxDescriptorPool, nullptr);
         vkDestroyDescriptorPool(device, cubeboxDescriptorPool, nullptr);
+        vkDestroyDescriptorPool(device, shadowImageDescriptorPool, nullptr);
 
         vkDestroyDescriptorSetLayout(device, descriptorSetLayout, nullptr);
 
+        vkDestroyBuffer(device, shadowDepthVertexBuffer, nullptr);
+        vkFreeMemory(device, shadowDepthVertexBufferMemory, nullptr);
         vkDestroyBuffer(device, cubeboxVertexBuffer, nullptr);
         vkFreeMemory(device, cubeboxVertexBufferMemory, nullptr);
         vkDestroyBuffer(device, skyboxVertexBuffer, nullptr);
@@ -1156,6 +1274,8 @@ private:
         vkDestroyBuffer(device, vertexBuffer, nullptr);
         vkFreeMemory(device, vertexBufferMemory, nullptr);
 
+        vkDestroyBuffer(device, shadowDepthIndexBuffer, nullptr);
+        vkFreeMemory(device, shadowDepthIndexBufferMemory, nullptr);
         vkDestroyBuffer(device, cubeboxIndexBuffer, nullptr);
         vkFreeMemory(device, cubeboxIndexBufferMemory, nullptr);
         vkDestroyBuffer(device, skyboxIndexBuffer, nullptr);
@@ -1163,13 +1283,16 @@ private:
         vkDestroyBuffer(device, indexBuffer, nullptr);
         vkFreeMemory(device, indexBufferMemory, nullptr);
 
+        vkDestroyPipeline(device, shadowImagePipeline, nullptr);
+        vkDestroyPipelineLayout(device, shadowImagePipelineLayout, nullptr);
         vkDestroyPipeline(device, boxPipeline, nullptr);
         vkDestroyPipelineLayout(device, boxPipelineLayout, nullptr);
-        vkDestroyPipeline(device, graphicsTestPipeline, nullptr);
-        vkDestroyPipelineLayout(device, testPipelineLayout, nullptr);
+        vkDestroyPipeline(device, skyboxPipeline, nullptr);
+        vkDestroyPipelineLayout(device, skyboxPipelineLayout, nullptr);
         vkDestroyPipeline(device, graphicsPipeline, nullptr);
         vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
         vkDestroyRenderPass(device, renderPass, nullptr);
+        vkDestroyRenderPass(device, shadowImageRenderPass, nullptr);
 
         for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
             vkDestroySemaphore(device, imageAvailableSemaphores[i], nullptr);
@@ -1240,6 +1363,146 @@ private:
         poolInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily.value();
 
         if (vkCreateCommandPool(device, &poolInfo, nullptr, &commandPool)) {
+        }
+    }
+
+    void prepareOffScreen() {
+        //create image
+        //VkImage temp;
+        VkImageCreateInfo imageInfo{};
+        VkFormat depthFormat = findDepthFormat();
+        imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+        imageInfo.imageType = VK_IMAGE_TYPE_2D;
+        imageInfo.extent.width = WIDTH;
+        imageInfo.extent.height = HEIGHT;
+        imageInfo.extent.depth = 1;
+        imageInfo.arrayLayers = 1;
+        imageInfo.mipLevels = 1;
+        imageInfo.format = VK_FORMAT_D16_UNORM;
+        imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+        imageInfo.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+        imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+
+        if (vkCreateImage(device, &imageInfo, nullptr, &shadowDepthImage)) {
+            throw std::runtime_error("failed to crate image!");
+        }
+
+        //allocate and bind the memory
+        VkMemoryRequirements memRequirements;
+        vkGetImageMemoryRequirements(device, shadowDepthImage, &memRequirements);
+
+        VkMemoryAllocateInfo allocInfo{};
+        allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+        allocInfo.allocationSize = memRequirements.size;
+        allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+
+        if (vkAllocateMemory(device, &allocInfo, nullptr, &shadowDepthImageMemory) != VK_SUCCESS) {
+            throw std::runtime_error("failed to allocate image memory!");
+        }
+
+        vkBindImageMemory(device, shadowDepthImage, shadowDepthImageMemory, 0);
+
+        //create image view
+        VkImageViewCreateInfo viewInfo{};
+        viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+        viewInfo.image = shadowDepthImage;
+        viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+        viewInfo.format = VK_FORMAT_D16_UNORM;
+        viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;//VK_IMAGE_ASPECT_COLOR_BIT;
+        viewInfo.subresourceRange.baseMipLevel = 0;
+        viewInfo.subresourceRange.levelCount = 1;
+        viewInfo.subresourceRange.baseArrayLayer = 0;
+        viewInfo.subresourceRange.layerCount = 1;
+
+        if (vkCreateImageView(device, &viewInfo, nullptr, &shadowDepthImageView)) {
+            throw std::runtime_error("failed to create texture image view!");
+        }
+
+        //create sampler
+        VkSamplerCreateInfo samplerInfo{};
+        samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+        samplerInfo.magFilter = VK_FILTER_LINEAR;
+        samplerInfo.minFilter = VK_FILTER_LINEAR;
+        samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+        samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+        samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+        samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+        samplerInfo.mipLodBias = 0.0f;
+        samplerInfo.maxAnisotropy = 1.0f;
+        samplerInfo.minLod = 0.0f;
+        samplerInfo.maxLod = 1.0f;
+        samplerInfo.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
+
+        VkPhysicalDeviceProperties properties{};
+        vkGetPhysicalDeviceProperties(physicalDevice, &properties);
+
+        if (vkCreateSampler(device, &samplerInfo, nullptr, &shadowDepthImageSampler) != VK_SUCCESS) {
+            throw std::runtime_error("failed to create texture sampler!");
+        }
+
+        //create renderpass
+        VkAttachmentDescription attachmentDescription{};
+        attachmentDescription.format = VK_FORMAT_D16_UNORM;
+        attachmentDescription.samples = VK_SAMPLE_COUNT_1_BIT;
+        attachmentDescription.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;							
+        attachmentDescription.storeOp = VK_ATTACHMENT_STORE_OP_STORE;						
+        attachmentDescription.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+        attachmentDescription.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+        attachmentDescription.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;					
+        attachmentDescription.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+
+        VkAttachmentReference depthReference = {};
+        depthReference.attachment = 0;
+        depthReference.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+        VkSubpassDescription subpass = {};
+        subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+        subpass.colorAttachmentCount = 0;													
+        subpass.pDepthStencilAttachment = &depthReference;
+
+        std::array<VkSubpassDependency, 2> dependencies;
+
+        dependencies[0].srcSubpass = VK_SUBPASS_EXTERNAL;
+        dependencies[0].dstSubpass = 0;
+        dependencies[0].srcStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+        dependencies[0].dstStageMask = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+        dependencies[0].srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
+        dependencies[0].dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+        dependencies[0].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+
+        dependencies[1].srcSubpass = 0;
+        dependencies[1].dstSubpass = VK_SUBPASS_EXTERNAL;
+        dependencies[1].srcStageMask = VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+        dependencies[1].dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+        dependencies[1].srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+        dependencies[1].dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+        dependencies[1].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+
+        VkRenderPassCreateInfo renderPassCreateInfo{};
+        renderPassCreateInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+        renderPassCreateInfo.attachmentCount = 1;
+        renderPassCreateInfo.pAttachments = &attachmentDescription;
+        renderPassCreateInfo.subpassCount = 1;
+        renderPassCreateInfo.pSubpasses = &subpass;
+        renderPassCreateInfo.dependencyCount = static_cast<uint32_t>(dependencies.size());
+        renderPassCreateInfo.pDependencies = dependencies.data();
+
+        if (vkCreateRenderPass(device, &renderPassCreateInfo, nullptr, &shadowImageRenderPass) != VK_SUCCESS) {
+            throw std::runtime_error("failed to create render pass!");
+        }
+
+        //create framebuffer
+        VkFramebufferCreateInfo fbufCreateInfo{};
+        fbufCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+        fbufCreateInfo.renderPass = shadowImageRenderPass;
+        fbufCreateInfo.attachmentCount = 1;
+        fbufCreateInfo.pAttachments = &shadowDepthImageView;
+        fbufCreateInfo.width = WIDTH;
+        fbufCreateInfo.height = HEIGHT;
+        fbufCreateInfo.layers = 1;
+
+        if (vkCreateFramebuffer(device, &fbufCreateInfo, nullptr, &shadowImageFramebuffer) != VK_SUCCESS) {
+            throw std::runtime_error("failed to create framebuffer!");
         }
     }
 
@@ -1335,6 +1598,14 @@ private:
             throw std::runtime_error("failed to begin recording command buffer!");
         }
 
+        //recreate another renderpass for depth texture
+        VkRenderPassBeginInfo depthTextureRenderPassInfo{};
+        depthTextureRenderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+        depthTextureRenderPassInfo.renderPass = shadowImageRenderPass;
+        depthTextureRenderPassInfo.framebuffer = shadowImageFramebuffer;
+        depthTextureRenderPassInfo.renderArea.offset = { 0,0 };
+        depthTextureRenderPassInfo.renderArea.extent = swapChainExtent;
+
         VkRenderPassBeginInfo renderPassInfo{};
         renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
         renderPassInfo.renderPass = renderPass;;
@@ -1376,11 +1647,13 @@ private:
 
         vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets[currentFrame], 0, nullptr);
 
+        //draw model
+        
         //vkCmdDraw(commandBuffer, static_cast<uint32_t>(vertices.size()), 1, 0, 0);
-        vkCmdDrawIndexed(commandBuffer,static_cast<uint32_t>(indices.size()),1,0,0,0);
+        //vkCmdDrawIndexed(commandBuffer,static_cast<uint32_t>(indices.size()),1,0,0,0);
 
         //draw skybox
-        vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsTestPipeline);
+        vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, skyboxPipeline);
 
         vertexBuffers[0] = skyboxVertexBuffer;
 
@@ -1388,22 +1661,24 @@ private:
 
         vkCmdBindIndexBuffer(commandBuffer, skyboxIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
 
-        vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, testPipelineLayout, 0, 1, &skyboxDescriptorSets[currentFrame], 0, nullptr);
+        vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, skyboxPipelineLayout, 0, 1, &skyboxDescriptorSets[currentFrame], 0, nullptr);
 
         vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(skyboxIndices.size()), 1, 0, 0, 0);
 
         //draw cube
         vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, boxPipeline);
 
-        vertexBuffers[0] = cubeboxVertexBuffer;
+        //vertexBuffers[0] = cubeboxVertexBuffer;
+        vertexBuffers[0] = shadowDepthVertexBuffer;
 
         vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
 
-        vkCmdBindIndexBuffer(commandBuffer, cubeboxIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
+        //vkCmdBindIndexBuffer(commandBuffer, cubeboxIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
+        vkCmdBindIndexBuffer(commandBuffer, shadowDepthIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
 
         vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, boxPipelineLayout, 0, 1, &cubeboxDescriptorSets[currentFrame], 0, nullptr);
 
-        vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(boxIndices.size()), 1, 0, 0, 0);
+        vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(shadowDepthIndices.size()), 1, 0, 0, 0);
         
         vkCmdEndRenderPass(commandBuffer);
 
@@ -1703,7 +1978,7 @@ private:
         pipelineLayoutInfo.pushConstantRangeCount = 0;
         pipelineLayoutInfo.pPushConstantRanges = nullptr;
 
-        if (vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &testPipelineLayout) != VK_SUCCESS) {
+        if (vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &skyboxPipelineLayout) != VK_SUCCESS) {
             throw std::runtime_error("failed to create pipeline layout!");
         }
 
@@ -1721,7 +1996,7 @@ private:
         pipelineInfo.pColorBlendState = &colorBlending;
         pipelineInfo.pDynamicState = &dynamicState;
 
-        pipelineInfo.layout = testPipelineLayout;
+        pipelineInfo.layout = skyboxPipelineLayout;
 
         pipelineInfo.renderPass = renderPass;
         pipelineInfo.subpass = 0;
@@ -1731,7 +2006,7 @@ private:
 
         pipelineInfo.pDepthStencilState = &depthStencil;
 
-        if (vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphicsTestPipeline) != VK_SUCCESS) {
+        if (vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &skyboxPipeline) != VK_SUCCESS) {
             throw std::runtime_error("failed to create graphics pipeline!");
         }
 
@@ -1827,8 +2102,8 @@ private:
         rasterizer.depthBiasConstantFactor = 0.f;
         rasterizer.depthBiasClamp = 0.f;
         rasterizer.depthBiasSlopeFactor = 0.f;
-        //rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
-        rasterizer.cullMode = VK_CULL_MODE_NONE;
+        rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
+        //rasterizer.cullMode = VK_CULL_MODE_NONE;
         rasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
 
         VkPipelineMultisampleStateCreateInfo multisampling{};
@@ -2131,6 +2406,12 @@ private:
         if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
             camera.ProcessKeyboard(RR, deltaTime);
         }
+        if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
+            camera.ProcessKeyboard(RU, deltaTime);
+        }
+        if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
+            camera.ProcessKeyboard(RD, deltaTime);
+        }
     }
 
     void updateUniformBuffer(uint32_t currentImage) {
@@ -2141,7 +2422,7 @@ private:
         
         UniformBufferObject ubo{};
         ubo.pos = camera.Position;
-        ubo.lightPos = glm::vec3(0,.75f,0);
+        ubo.lightPos = glm::vec3(0.0f, 2.0f, 0.0f);
         //ubo.model = glm::rotate(glm::mat4(1.f), time * glm::radians(90.f), glm::vec3(0.f,1.f,0.f));
         ubo.model = glm::mat4(1.f);
         //ubo.view = glm::lookAt(glm::vec3(6.f,6.f,6.f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
@@ -2150,6 +2431,13 @@ private:
         //ubo.proj = glm::perspective(glm::radians(45.f), swapChainExtent.width / (float) swapChainExtent.height, 0.1f, 100.f);
         ubo.proj = glm::perspective(glm::radians(camera.Zoom), (float)swapChainExtent.width / (float)swapChainExtent.height, 0.1f, 100.0f);
         //ubo.proj[1][1] *= -1;
+
+        float near_plane = 1.f, far_plane = 7.f;
+        ubo.lightView = glm::lookAt(glm::vec3(0.0f, 2.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+        //calculate the projection matrix
+        //left, right, bottom, top, near, far
+        ubo.lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
+        glm::mat4 lightSpaceMatrix = ubo.lightProjection * ubo.lightView;
 
         memcpy(uniformBuffersMapped[currentImage], &ubo, sizeof(ubo));
     }
