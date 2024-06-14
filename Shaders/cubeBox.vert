@@ -18,18 +18,37 @@ layout(binding = 0) uniform UniformBufferObject{
     vec3 lightPos;
 } ubo;
 
+
+vec3 BlingPhong();
+vec3 TestNormal();
+vec3 OriginalColor();
+
 void main() {
-    gl_Position = ubo.proj * ubo.view * ubo.model * vec4(inPosition+vec3(0,0,0), 1.0);
-    
+    gl_Position = ubo.proj * ubo.view * vec4(inPosition, 1.0);
+
+    vec3 specular = BlingPhong();
+
+    fragColor = specular;
+}
+
+vec3 TestNormal(){
+    return abs(inNormal);
+}
+
+vec3 OriginalColor(){
+    return inColor;
+}
+
+vec3 BlingPhong(){
     vec3 lightDir = normalize(ubo.lightPos - inPosition);
     vec3 viewDir = normalize(ubo.pos - inPosition);
     vec3 halfwayDir = normalize(lightDir + viewDir);
 
-    float shininess = 2.f;
+    float shininess = 0.9f;
 
     float spec = pow(max(dot(inNormal, halfwayDir),0), shininess);
 
-    vec3 specular = inColor * spec;
+    vec3 color = abs(inNormal) * spec;
 
-    fragColor = specular;
+    return color;
 }

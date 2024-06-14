@@ -15,6 +15,8 @@ enum Camera_Movement {
     DOWN,
     RL,
     RR,
+    RU,
+    RD,
 };
 
 // Default camera values
@@ -90,6 +92,14 @@ public:
         }
         if (direction == RR) {
             Yaw += velocity * 2;
+            updateCameraVectors();
+        }
+        if (direction == RU) {
+            Pitch -= velocity * 2;
+            updateCameraVectors();
+        }
+        if (direction == RD) {
+            Pitch += velocity * 2;
             updateCameraVectors();
         }
 

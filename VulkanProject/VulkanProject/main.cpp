@@ -145,45 +145,56 @@ namespace std {
 
 const std::vector<Vertex> shadowDepthVertices = {
     //left
-    {{-1.f, -1.f, -1.f}, {1.0f, 0.0f, 0.0f}, {1.0f,0.f}, {1,0,0}},
-    {{-1.f, 1.f, -1.f}, {1.0f, 0.0f, 0.0f}, {0.0f,0.f}, {1,0,0}},
-    {{-1.f, -1.f, 1.f}, {1.0f, 0.0f, 0.0f}, {0.0f,1.f}, {1,0,0}},
-    {{-1.f, 1.f, 1.f}, {1.0f, 0.0f, 0.0f}, {1.0f,1.f}, {1,0,0}},
+    {{-1.f, -1.f, -1.f}, {1.0f, 0.0f, 0.0f}, {1.0f,0.f}, {-1,0,0}},
+    {{-1.f, 1.f, -1.f}, {1.0f, 0.0f, 0.0f}, {0.0f,0.f}, {-1,0,0}},
+    {{-1.f, -1.f, 1.f}, {1.0f, 0.0f, 0.0f}, {0.0f,1.f}, {-1,0,0}},
+    {{-1.f, 1.f, 1.f}, {1.0f, 0.0f, 0.0f}, {1.0f,1.f}, {-1,0,0}},
 
     //top
-    {{-1.f, 1.f, 1.f}, {1.0f, 1.0f, 1.0f}, {1.0f,0.f}, { 0,-1,0 }},
-    {{-1.f, 1.f, -1.f}, {1.0f, 1.0f, 1.0f}, {0.0f,0.f}, { 0,-1,0 }},
-    {{1.f, 1.f, 1.f}, {1.0f, 1.0f, 1.0f}, {0.0f,1.f}, { 0,-1,0 }},
-    {{1.f, 1.f, -1.f}, {1.0f, 1.0f, 1.0f}, {1.0f,1.f}, { 0,-1,0 }},
+    {{-1.f, 1.f, 1.f}, {1.0f, 1.0f, 1.0f}, {1.0f,0.f}, { 0,1,0 }},
+    {{-1.f, 1.f, -1.f}, {1.0f, 1.0f, 1.0f}, {0.0f,0.f}, { 0,1,0 }},
+    {{1.f, 1.f, 1.f}, {1.0f, 1.0f, 1.0f}, {0.0f,1.f}, { 0,1,0 }},
+    {{1.f, 1.f, -1.f}, {1.0f, 1.0f, 1.0f}, {1.0f,1.f}, { 0,1,0 }},
 
     //bottom
-    {{-1.f, -1.f, 1.f}, {1.0f, 1.0f, 1.0f}, {1.0f,0.f}, { 0,1,0 }},
-    {{-1.f, -1.f, -1.f}, {1.0f, 1.0f, 1.0f}, {0.0f,0.f}, { 0,1,0 }},
-    {{1.f, -1.f, 1.f}, {1.0f, 1.0f, 1.0f}, {0.0f,1.f}, { 0,1,0 }},
-    {{1.f, -1.f, -1.f}, {1.0f, 1.0f, 1.0f}, {1.0f,1.f}, { 0,1,0 }},
+    {{-1.f, -1.f, 1.f}, {1.0f, 1.0f, 1.0f}, {1.0f,0.f}, { 0,-1,0 }},
+    {{-1.f, -1.f, -1.f}, {1.0f, 1.0f, 1.0f}, {0.0f,0.f}, { 0,-1,0 }},
+    {{1.f, -1.f, 1.f}, {1.0f, 1.0f, 1.0f}, {0.0f,1.f}, { 0,-1,0 }},
+    {{1.f, -1.f, -1.f}, {1.0f, 1.0f, 1.0f}, {1.0f,1.f}, { 0,-1,0 }},
 
     //right
-    {{1.f, -1.f, -1.f}, {0.0f, 1.0f, 0.243f}, {1.0f,0.f}, { -1,0,0 }},
-    {{1.f, 1.f, -1.f}, {0.0f, 1.0f, 0.243f}, {0.0f,0.f}, { -1,0,0 }},
-    {{1.f, -1.f, 1.f}, {0.0f, 1.0f, 0.243f}, {0.0f,1.f}, { -1,0,0 }},
-    {{1.f, 1.f, 1.f}, {0.0f, 1.0f, 0.243f}, {1.0f,1.f}, { -1,0,0 }},
+    {{1.f, -1.f, -1.f}, {0.0f, 1.0f, 0.243f}, {1.0f,0.f}, { 1,0,0 }},
+    {{1.f, 1.f, -1.f}, {0.0f, 1.0f, 0.243f}, {0.0f,0.f}, { 1,0,0 }},
+    {{1.f, -1.f, 1.f}, {0.0f, 1.0f, 0.243f}, {0.0f,1.f}, { 1,0,0 }},
+    {{1.f, 1.f, 1.f}, {0.0f, 1.0f, 0.243f}, {1.0f,1.f}, { 1,0,0 }},
 
     //back
-    {{1.f, -1.f, -1.f}, {1.0f, 1.0f, 1.f}, {1.0f,0.f}, { 0,0,1 }},
-    {{1.f, 1.f, -1.f}, {1.0f, 1.0f, 1.f}, {0.0f,0.f}, { 0,0,1 }},
-    {{-1.f, -1.f, -1.f}, {1.0f, 1.0f, 1.f}, {1.0f,0.f}, { 0,0,1 }},
-    {{-1.f, 1.f, -1.f}, {1.0f, 1.0f, 1.f}, {0.0f,0.f}, { 0,0,1 }},
+    {{1.f, -1.f, -1.f}, {1.0f, 1.0f, 1.f}, {1.0f,0.f}, { 0,0,-1 }},
+    {{1.f, 1.f, -1.f}, {1.0f, 1.0f, 1.f}, {0.0f,0.f}, { 0,0,-1 }},
+    {{-1.f, -1.f, -1.f}, {1.0f, 1.0f, 1.f}, {1.0f,0.f}, { 0,0,-1 }},
+    {{-1.f, 1.f, -1.f}, {1.0f, 1.0f, 1.f}, {0.0f,0.f}, { 0,0,-1 }},
 
     //front
+    {{1.f, -1.f, 1.f}, {1.0f, 1.0f, 1.f}, {1.0f,0.f}, { 0,0,1 }},
+    {{1.f, 1.f, 1.f}, {1.0f, 1.0f, 1.f}, {0.0f,0.f}, { 0,0,1 }},
+    {{-1.f, -1.f, 1.f}, {1.0f, 1.0f, 1.f}, {1.0f,0.f}, { 0,0,1 }},
+    {{-1.f, 1.f, 1.f}, {1.0f, 1.0f, 1.f}, {0.0f,0.f}, { 0,0,1 }},
 
+    //plane
+    {{-4.f, 2.f, 4.f}, {1.0f, 1.0f, 1.0f}, {1.0f,0.f}, { 0,-1,0 }},
+    {{-4.f, 2.f, -4.f}, {1.0f, 1.0f, 1.0f}, {0.0f,0.f}, { 0,-1,0 }},
+    {{4.f, 2.f, 4.f}, {1.0f, 1.0f, 1.0f}, {0.0f,1.f}, { 0,-1,0 }},
+    {{4.f, 2.f, -4.f}, {1.0f, 1.0f, 1.0f}, {1.0f,1.f}, { 0,-1,0 }},
 };
 
 const std::vector<uint32_t> shadowDepthIndices = {
-    0, 1, 2, 1, 2, 3,
-    4, 5, 6, 5, 6, 7,
-    8, 9, 10, 9, 10, 11,
-    12, 13, 14, 13, 14, 15,
-    16, 17, 18, 17, 18, 19
+    0, 1, 2, 2, 1, 3,
+    4, 5, 6, 5, 7, 6,
+    8, 10, 9, 9, 10, 11,
+    12, 14, 13, 13, 14, 15,
+    16, 17, 18, 17, 19, 18,
+    20, 22, 21, 21, 22, 23,
+    24, 26, 25, 25, 26, 27
 };
 
 const std::vector<Vertex> boxVertices = {
@@ -1667,7 +1678,7 @@ private:
 
         vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, boxPipelineLayout, 0, 1, &cubeboxDescriptorSets[currentFrame], 0, nullptr);
 
-        vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(boxIndices.size()), 1, 0, 0, 0);
+        vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(shadowDepthIndices.size()), 1, 0, 0, 0);
         
         vkCmdEndRenderPass(commandBuffer);
 
@@ -2091,8 +2102,8 @@ private:
         rasterizer.depthBiasConstantFactor = 0.f;
         rasterizer.depthBiasClamp = 0.f;
         rasterizer.depthBiasSlopeFactor = 0.f;
-        //rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
-        rasterizer.cullMode = VK_CULL_MODE_NONE;
+        rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
+        //rasterizer.cullMode = VK_CULL_MODE_NONE;
         rasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
 
         VkPipelineMultisampleStateCreateInfo multisampling{};
@@ -2395,6 +2406,12 @@ private:
         if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
             camera.ProcessKeyboard(RR, deltaTime);
         }
+        if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
+            camera.ProcessKeyboard(RU, deltaTime);
+        }
+        if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
+            camera.ProcessKeyboard(RD, deltaTime);
+        }
     }
 
     void updateUniformBuffer(uint32_t currentImage) {
@@ -2405,7 +2422,7 @@ private:
         
         UniformBufferObject ubo{};
         ubo.pos = camera.Position;
-        ubo.lightPos = glm::vec3(0,.75f,0);
+        ubo.lightPos = glm::vec3(0.0f, 2.0f, 0.0f);
         //ubo.model = glm::rotate(glm::mat4(1.f), time * glm::radians(90.f), glm::vec3(0.f,1.f,0.f));
         ubo.model = glm::mat4(1.f);
         //ubo.view = glm::lookAt(glm::vec3(6.f,6.f,6.f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
@@ -2416,7 +2433,7 @@ private:
         //ubo.proj[1][1] *= -1;
 
         float near_plane = 1.f, far_plane = 7.f;
-        ubo.lightView = glm::lookAt(glm::vec3(-2.0f, 4.0f, -1.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+        ubo.lightView = glm::lookAt(glm::vec3(0.0f, 2.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
         //calculate the projection matrix
         //left, right, bottom, top, near, far
         ubo.lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
